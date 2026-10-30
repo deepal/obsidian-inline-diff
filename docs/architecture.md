@@ -1,0 +1,19 @@
+# Implementation notes
+
+`src/model.ts` owns proposal parsing, clean Markdown projections, source mappings, safe-container grouping, and identity-based transformations. It has no Obsidian dependency. It recognizes literal constructs before interpreting proposal delimiters; projections preserve all unrelated source.
+
+Source decorations and Live Preview replacements share one CodeMirror state field. A replacement widget renders only when its container is outside the text selection; selecting that container reveals editable source. Native table-cell editors never own a full-note comparison. CodeMirror creates widgets for visible content, and the Reading coordinator follows native preview sections rather than rendering every offscreen proposal.
+
+`src/render.ts` uses Obsidian's Markdown renderer for both alternatives. References and footnotes render with the complete clean document context before the relevant container is extracted. Each comparison owns its renderer children and asynchronous controls. Text marks respect Unicode grapheme boundaries. Side borders and source comparisons identify structural or visually invisible changes. Ambiguous text matches use explicit numbered proposal anchors.
+
+Reading comparisons receive no editor reference, focus anchors, or review callbacks. Task inputs are disabled; generated Bases and iframe content are inert. Embedded notes and native hover previews use the same display-only path. A guard prevents recursive processing of a comparison's own rendered Markdown.
+
+The floating toolbar belongs to the anchor's document, including a popout. It is appended to the document body only while visible and removed on dismissal. Pane/window bounds constrain its fixed position. Scroll, resize, anchor-size changes, mode changes, keyboard focus, and pointer transitions participate in its lifecycle. Its DOM never reserves space in a paragraph or table.
+
+Review actions capture the owning view, file identity, complete buffer snapshot, and exact proposal range. After reading the current disk bytes, the plugin revalidates the snapshot and the view's last loaded data. A stale target is refused; there is no search for similar text. A review uses one CodeMirror history transaction. A later pane selection is not overridden when an asynchronous check finishes.
+
+Obsidian normalizes editor line endings and strips a UTF-8 BOM on a fresh text read. A component-owned override of the public `getViewData()` serialization boundary preserves the original file format while leaving buffer offsets and undo native. Review decisions also resolve the corresponding raw proposal range, preserving the selected arm's own line endings even when the alternatives contain identical text. Compact newline/BOM snapshots keyed by SHA-256 restore those formats through native undo/redo without retaining a complete document per decision. The override is restored only when still owned by this plugin. Mixed line endings and final-newline state have exact tests.
+
+Private host access is limited to guarded CodeMirror ownership and native table-cell closing. On Obsidian 1.14.5, closing the active cell before a root review transaction prevents its separate editor history from intercepting the change. If a future host lacks that guarded operation, the plugin leaves the proposal pending and asks the user to finish cell editing. Native cell-padding changes are tested against an independent native edit.
+
+Build/deployment code lives under `scripts/`. Deployments copy only the three plugin assets, discover existing installations by manifest ID, and never replace settings. The real-app harness verifies a random disposable-vault sentinel, installed asset hashes, and loaded plugin identity before testing. It uses a separate application profile and closes only its spawned instance.

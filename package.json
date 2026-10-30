@@ -1,0 +1,60 @@
+{
+  "name": "obsidian-inline-diff",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Review proposed Markdown changes in place with rendered comparisons.",
+  "main": "main.js",
+  "author": "Deepal Jayasekara",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepal/obsidian-inline-diff.git"
+  },
+  "engines": {
+    "node": ">=24.15.0"
+  },
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "npm run typecheck && npm run typecheck:browser && node esbuild.config.mjs production",
+    "typecheck": "tsc --noEmit",
+    "typecheck:browser": "tsc --project tsconfig.browser.json",
+    "lint": "eslint src --max-warnings 0",
+    "test": "node --experimental-strip-types --test test/*.test.mjs",
+    "test:obsidian": "npm run test:obsidian:matrix && npm run test:obsidian:interactions",
+    "test:obsidian:matrix": "node scripts/obsidian-qa.mjs",
+    "test:obsidian:interactions": "node scripts/obsidian-interactions.mjs",
+    "check": "npm run lint && npm test && env -u OBSIDIAN_PLUGIN_DIR -u OBSIDIAN_VAULT_DIR npm run build"
+  },
+  "dependencies": {
+    "@noble/hashes": "2.4.0",
+    "diff": "^8.0.4",
+    "markdown-it": "^14.1.0"
+  },
+  "devDependencies": {
+    "@codemirror/commands": "^6.10.0",
+    "@codemirror/language": "^6.11.0",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/view": "6.43.13",
+    "@eslint/js": "^9.39.4",
+    "@eslint/json": "0.14.0",
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^24.0.0",
+    "esbuild": "0.25.5",
+    "eslint": "^9.39.4",
+    "eslint-plugin-obsidianmd": "0.4.2",
+    "jsdom": "^27.0.0",
+    "obsidian": "1.14.4",
+    "playwright": "1.64.1",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.59.1"
+  },
+  "allowScripts": {
+    "esbuild@0.25.5": true
+  },
+  "overrides": {
+    "eslint-plugin-obsidianmd": {
+      "obsidian": "$obsidian"
+    }
+  }
+}

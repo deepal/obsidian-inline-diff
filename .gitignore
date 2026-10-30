@@ -1,0 +1,14 @@
+node_modules/
+main.js
+*.js.map
+data.json
+.DS_Store
+.env
+.env.*
+!.env.example
+.npmrc
+.obsidian/
+*.log
+.qa/
+test-results/
+playwright-report/

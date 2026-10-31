@@ -1,7 +1,7 @@
 {
   "id": "inline-diff",
   "name": "Inline Diff",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minAppVersion": "1.14.5",
   "description": "Review proposed changes with rendered before and after comparisons, then accept or reject individual edits.",
   "author": "Deepal Jayasekara",

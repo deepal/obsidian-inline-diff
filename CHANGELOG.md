@@ -1,3 +1,9 @@
+## [1.0.1](https://github.com/deepal/obsidian-inline-diff/compare/1.0.0...1.0.1) (2026-10-31)
+
+### Bug Fixes
+
+* simplify diff block spacing and highlighting ([4170fdf](https://github.com/deepal/obsidian-inline-diff/commit/4170fdf225e68bc4a7cc7fa05f8372a87c94ef8a))
+
 ## 1.0.0 (2026-10-31)
 
 ### Features

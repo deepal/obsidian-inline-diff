@@ -135,6 +135,9 @@ export function editorExtension(plugin: InlineDiffPlugin) {
     pointerover(event, editor) {
       if (!plugin.isActive) return;
       const target = event.target as HTMLElement;
+      // Rendered comparisons own their block toolbar. Only source decorations
+      // may be anchored to an individual text range by this editor handler.
+      if (target.closest(".inline-diff-review")) return;
       const anchor = target.closest<HTMLElement>("[data-inline-diff-id]");
       const view = markdownView(editor.state);
       const model = editor.state.field(field);

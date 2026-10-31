@@ -33,8 +33,35 @@ test("independent anchors retain exact identity for multiple proposals", async (
   const anchors = [...f.comparison.element.querySelectorAll(".inline-diff-proposal-anchor")];
   assert.deepEqual(anchors.map(a => a.dataset.inlineDiffId), f.note.proposals.map(p => p.id));
   anchors[1].dispatchEvent(new f.dom.window.Event("pointerover", { bubbles: true }));
+  assert.equal(f.calls[0][0], f.comparison.element);
   assert.equal(f.calls[0][1].proposal.id, f.note.proposals[1].id);
   assert.equal(f.calls[0][1].source, f.note.source);
+  assert.equal(f.calls[0][2], anchors[1]);
+  f.comparison.unload(); f.dom.window.close();
+});
+test("all word highlights in one proposal use the complete comparison as their toolbar anchor", async () => {
+  const f = setup("{~~The service starts slowly and uses old settings.~>The service boots quickly and loads new settings.~~}", true);
+  await f.comparison.ready;
+  const highlights = [...f.comparison.element.querySelectorAll(".inline-diff-changed")];
+  assert.ok(highlights.length >= 4);
+  for (const highlight of highlights) {
+    assert.equal(highlight.hasAttribute("data-inline-diff-id"), false);
+    assert.equal(highlight.hasAttribute("tabindex"), false);
+    highlight.dispatchEvent(new f.dom.window.Event("pointerover", { bubbles: true }));
+    const [anchor, target, focusAnchor] = f.calls.at(-1);
+    assert.equal(anchor, f.comparison.element);
+    assert.equal(focusAnchor, f.comparison.element);
+    assert.equal(target.proposal.id, f.note.proposals[0].id);
+  }
+  f.comparison.unload(); f.dom.window.close();
+});
+test("hovering shared-container words never selects an individual proposal", async () => {
+  const f = setup("A {~~old~>new~~} word and {~~slow~>fast~~} response.", true);
+  await f.comparison.ready;
+  for (const highlight of f.comparison.element.querySelectorAll(".inline-diff-changed")) {
+    highlight.dispatchEvent(new f.dom.window.Event("pointerover", { bubbles: true }));
+  }
+  assert.equal(f.calls.length, 0);
   f.comparison.unload(); f.dom.window.close();
 });
 test("ordinary comparisons have no title, visible side labels, source section, or single-change badge", async () => {
@@ -152,6 +179,26 @@ test("overlay refuses a Reading-view target", () => {
   const anchor = doc.createElement("span"); doc.body.append(anchor);
   overlay.show(anchor, { view: { getMode: () => "preview" } });
   assert.equal(overlay.element.hidden, true); overlay.unload(); document.window.close();
+});
+
+test("a block-positioned toolbar restores keyboard focus to its numbered proposal selector", () => {
+  const document = dom(), doc = document.window.document;
+  const pane = doc.createElement("div"), block = doc.createElement("section"), selector = doc.createElement("span");
+  selector.tabIndex = 0; block.append(selector); pane.append(block); doc.body.append(pane);
+  pane.getBoundingClientRect = () => ({ left: 0, right: 600, top: 0, bottom: 500 });
+  block.getBoundingClientRect = () => ({ left: 20, right: 550, top: 100, bottom: 400 });
+  selector.getBoundingClientRect = () => ({ left: 500, right: 520, top: 130, bottom: 150 });
+  const overlay = new ReviewOverlay(doc, () => assert.fail("Escape cannot resolve")); overlay.load();
+  Object.defineProperty(overlay.element, "offsetWidth", { value: 64 });
+  Object.defineProperty(overlay.element, "offsetHeight", { value: 32 });
+  overlay.show(block, { view: { getMode: () => "source", containerEl: pane } }, selector);
+  assert.equal(overlay.element.style.left, "486px");
+  assert.equal(overlay.element.style.top, "72px");
+  overlay.focus();
+  doc.activeElement.dispatchEvent(new document.window.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  assert.equal(doc.activeElement, selector);
+  assert.equal(doc.querySelector(".inline-diff-toolbar"), null);
+  overlay.unload(); document.window.close();
 });
 
 test("settings normalize untrusted data and preserve independent colours", () => {

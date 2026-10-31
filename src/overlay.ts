@@ -8,6 +8,7 @@ export class ReviewOverlay extends Component {
   readonly element: HTMLElement;
   private target: ReviewTarget | null = null;
   private anchor: HTMLElement | null = null;
+  private focusAnchor: HTMLElement | null = null;
   private timer: number | null = null;
   private frame: number | null = null;
   private observer: ResizeObserver;
@@ -71,10 +72,10 @@ export class ReviewOverlay extends Component {
     });
   }
 
-  show(anchor: HTMLElement, target: ReviewTarget): void {
+  show(anchor: HTMLElement, target: ReviewTarget, focusAnchor = anchor): void {
     if (target.view.getMode() !== "source" || !anchor.isConnected) { this.hide(); return; }
     this.cancelHide(); this.observer.disconnect();
-    this.anchor = anchor; this.target = target;
+    this.anchor = anchor; this.focusAnchor = focusAnchor; this.target = target;
     this.observer.observe(anchor);
     this.observer.observe(target.view.contentEl?.querySelector(".cm-content") ?? target.view.containerEl);
     this.modeObserver.disconnect();
@@ -94,7 +95,7 @@ export class ReviewOverlay extends Component {
   focus(): void { this.cancelHide(); this.element.querySelector<HTMLButtonElement>("button")?.focus(); }
 
   private escape(): void {
-    const restore = this.element.contains(this.doc.activeElement), anchor = this.anchor, view = this.target?.view;
+    const restore = this.element.contains(this.doc.activeElement), anchor = this.focusAnchor, view = this.target?.view;
     this.hide();
     if (restore) { if (anchor && anchor.tabIndex >= 0) anchor.focus(); else view?.editor.focus(); }
   }
@@ -110,7 +111,7 @@ export class ReviewOverlay extends Component {
   }
 
   hide(): void {
-    this.releaseScope(); this.cancelHide(); this.element.hidden = true; this.element.remove(); this.target = null; this.anchor = null; this.observer.disconnect(); this.modeObserver.disconnect();
+    this.releaseScope(); this.cancelHide(); this.element.hidden = true; this.element.remove(); this.target = null; this.anchor = null; this.focusAnchor = null; this.observer.disconnect(); this.modeObserver.disconnect();
   }
 
   private schedulePosition(): void {

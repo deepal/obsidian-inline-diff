@@ -25,7 +25,7 @@ function textNodes(root: HTMLElement): Text[] {
   return nodes;
 }
 
-function markRange(root: HTMLElement, from: number, to: number, proposal: Proposal | undefined, side: "before" | "after"): void {
+function markRange(root: HTMLElement, from: number, to: number, side: "before" | "after"): void {
   let position = 0;
   for (const node of textNodes(root)) {
     const end = position + node.length;
@@ -36,7 +36,6 @@ function markRange(root: HTMLElement, from: number, to: number, proposal: Propos
       // The selection and mark must share a document.
       const mark = root.ownerDocument.createElement("span");
       mark.className = `inline-diff-changed inline-diff-${side === "before" ? "deletion" : "addition"}`;
-      if (proposal) mark.dataset.inlineDiffId = proposal.id;
       range.surroundContents(mark);
     }
     position = end;
@@ -76,7 +75,7 @@ function highlight(before: HTMLElement, after: HTMLElement, proposals: Proposal[
         if (previous.proposal?.id !== expanded.proposal?.id) previous.proposal = undefined;
       } else merged.push(expanded);
     }
-    for (const range of merged) markRange(root, range.from, range.to, range.proposal, side);
+    for (const range of merged) markRange(root, range.from, range.to, side);
   };
   apply(before, oldText, oldRanges, "before"); apply(after, newText, newRanges, "after");
   return visible;
@@ -139,9 +138,11 @@ export class Comparison extends Component {
       const show = (event: Event) => {
         if (!plugin.isActive) return;
         const target = event.target as HTMLElement;
-        const anchor = target.closest<HTMLElement>("[data-inline-diff-id]") ?? root;
+        const anchor = target.closest<HTMLElement>(".inline-diff-proposal-anchor,.inline-diff-source-entry") ?? root;
         const proposal = group.proposals.find(p => p.id === anchor.dataset.inlineDiffId) ?? (group.proposals.length === 1 ? group.proposals[0] : undefined);
-        if (proposal) plugin.overlay(doc).show(anchor, { view, file, source: note.source, proposal });
+        // Highlights are display-only. All rendered review actions belong at
+        // the comparison's top right, even when a numbered selector has focus.
+        if (proposal) plugin.overlay(doc).show(root, { view, file, source: note.source, proposal }, anchor);
       };
       this.registerDomEvent(root, "pointerover", show);
       this.registerDomEvent(root, "focusin", show);

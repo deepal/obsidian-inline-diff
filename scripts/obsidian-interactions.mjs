@@ -82,7 +82,7 @@ async function hoverFirst(mode) {
   await page.waitForFunction(() => !document.querySelector(".inline-diff-toolbar"));
   const block = mode !== "source" && await target.evaluate(element => element.classList.contains("inline-diff-review"));
   if (mode !== "source" && !block) await page.locator(".markdown-source-view .inline-diff-review").first().hover({ position: { x: 6, y: 8 } });
-  // Use the block padding: its centre can land under a word's floating toolbar.
+  // Enter shared comparisons before their floating numbered selectors.
   await target.hover(block ? { position: { x: 6, y: 8 } } : {}); await page.locator(".inline-diff-toolbar:visible").waitFor(); return target;
 }
 async function prepareHover(mode) {
@@ -114,6 +114,20 @@ async function execute(command) {
     await app.plugins.plugins["inline-diff"].lastResolution;
     return runnable && dispatched;
   }, command);
+}
+async function blockToolbarPosition(block) {
+  const geometry = await block.evaluate(element => {
+    const toolbar = element.ownerDocument.querySelector(".inline-diff-toolbar");
+    const rect = element.getBoundingClientRect(), box = toolbar.getBoundingClientRect();
+    const pane = app.workspace.activeLeaf.view.containerEl.getBoundingClientRect();
+    const win = element.ownerDocument.defaultView;
+    return { left: box.left, top: box.top,
+      expectedLeft: Math.max(pane.left + 4, Math.min(rect.right - box.width, pane.right - box.width - 4, win.innerWidth - box.width - 4)),
+      expectedTop: Math.max(pane.top + 4, Math.min(rect.top - box.height + 4, pane.bottom - box.height - 4, win.innerHeight - box.height - 4)) };
+  });
+  assert.ok(Math.abs(geometry.left - geometry.expectedLeft) <= .5, `toolbar must stay at block right: ${JSON.stringify(geometry)}`);
+  assert.ok(Math.abs(geometry.top - geometry.expectedTop) <= .5, `toolbar must stay at block top: ${JSON.stringify(geometry)}`);
+  return geometry;
 }
 
 try {
@@ -326,6 +340,44 @@ try {
   }
 
   if (matches("safety")) {
+    for (const width of [720, 1280]) for (const [name, wrap] of [
+      ["paragraph", text => text],
+      ["callout", text => `> [!note] Service\n> ${text}`],
+      ["table", text => `| Service | Behaviour |\n| --- | --- |\n| Worker | ${text} |`],
+    ]) await check(`${name}/${width}px keeps one block toolbar across all word highlights`, async () => {
+      const before = "The service starts slowly and uses old settings. It retries twice before stopping.";
+      const after = "The service boots quickly and loads new settings. It retries four times before pausing.";
+      const marker = `{~~${before}~>${after}~~}`;
+      const text = `Intro.\n\n${wrap(marker)}\n\nTail.\n`;
+      await page.setViewportSize({ width, height: 900 });
+      await setFixture(page, text, "live"); await ready("live", 1); await prepareHover("live");
+      const block = page.locator(".markdown-source-view .inline-diff-review");
+      const layout = await bounds("live");
+      await block.hover({ position: { x: 6, y: 8 } });
+      await page.locator(".inline-diff-toolbar:visible").waitFor();
+      const initial = await blockToolbarPosition(block);
+      const highlights = block.locator(".inline-diff-changed");
+      assert.ok(await highlights.count() >= 4);
+      for (const highlight of await highlights.all()) {
+        await highlight.hover();
+        assert.equal(await page.locator(".inline-diff-toolbar:visible").count(), 1);
+        assert.equal(await page.locator(".inline-diff-toolbar button").count(), 2);
+        const current = await blockToolbarPosition(block);
+        assert.ok(Math.abs(current.left - initial.left) <= .5 && Math.abs(current.top - initial.top) <= .5, "moving across highlights must not move the toolbar");
+      }
+      equalBounds(layout, await bounds("live"));
+      if (name === "paragraph" && width === 1280) await page.screenshot({ path: path.resolve(".qa", "block-toolbar-live.png") });
+      const decision = width === 1280 ? "accept" : "reject";
+      const button = page.locator(`.inline-diff-toolbar:visible [data-decision=${decision}]`);
+      await button.hover(); await button.click();
+      await page.evaluate(async () => { await app.plugins.plugins["inline-diff"].lastResolution; await inlineDiffQa.save(app.workspace.activeLeaf.view); });
+      const expected = text.replace(marker, decision === "accept" ? after : before);
+      assert.equal(await contents(), expected);
+      assert.equal(await fs.readFile(path.join(session.vault, "Review.md"), "utf8"), expected);
+      await page.keyboard.press("Meta+z"); assert.equal(await contents(), text);
+      await page.keyboard.press("Meta+Shift+z"); assert.equal(await contents(), expected);
+    });
+    await page.setViewportSize({ width: 1280, height: 900 });
     await check("mode switch removes an existing toolbar", async () => {
       await setFixture(page, source, "live"); await ready("live"); await hoverFirst("live");
       await page.evaluate(async () => { await app.workspace.activeLeaf.setViewState({ type: "markdown", state: { file: "Review.md", mode: "preview" } }); });
@@ -337,6 +389,11 @@ try {
       await setFixture(page, source, "live"); await ready("live");
       await page.locator(".markdown-source-view .inline-diff-review").first().hover();
       await page.locator(".markdown-source-view .inline-diff-review").first().locator(".inline-diff-proposal-anchor").nth(1).hover();
+      await blockToolbarPosition(page.locator(".markdown-source-view .inline-diff-review").first());
+      for (const highlight of await page.locator(".markdown-source-view .inline-diff-review").first().locator(".inline-diff-changed").all()) {
+        await highlight.hover();
+        await blockToolbarPosition(page.locator(".markdown-source-view .inline-diff-review").first());
+      }
       await page.locator(".inline-diff-toolbar:visible [data-decision=accept]").click();
       await page.evaluate(() => app.plugins.plugins["inline-diff"].lastResolution);
       assert.equal(await contents(), source.replace("{~~old~>second~~}", "second"));

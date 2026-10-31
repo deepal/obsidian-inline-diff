@@ -2,7 +2,7 @@
 
 Review an agent's proposed changes to an Obsidian note, then accept or reject each edit.
 
-![Inline Diff showing a proposed paragraph edit with red before and green after highlights](docs/images/readme-block-comparison.png)
+![Inline Diff showing pending changes, rendered comparisons, and accept or reject controls](docs/images/readme-pending-changes.png)
 
 Requires desktop Obsidian **1.14.5 or newer**. The tested baseline is 1.14.5 on macOS. Mobile support is not included.
 

@@ -22,6 +22,7 @@ See [implementation notes](docs/architecture.md) for rendering ownership, safe r
 - Deployment tests verify explicit targets, manifest discovery, preserved settings, build/copy failures, static assets, and host-module externals.
 - The real-app matrix compares meaningful DOM structure with Obsidian's native renderer, then checks hover actions, exact saved files, undo/redo, and Reading-view command exclusion.
 - The interaction suite covers themes, keyboard input, active table cells, stale/agent edits, CRLF serialization, multiple panes, diagnostics, footnote context, popouts, layout, zoom, delayed content, reloads, and stress fixtures.
+- Prose geometry checks retain the original inner padding, exclude extra outer vertical margins and frame borders, and compare wrapping/line bounds with clean paragraphs at the same content width, within 0.5 CSS pixels. They run in Live Preview and Reading at 720px/1280px widths, with light/dark palettes for every required theme.
 
 The PDF comparison checks the stable embed destination and options rather than transient PDF.js DOM. Native table-cell tests compare semantic cell content with an independent native edit because Obsidian owns cell-padding formatting. These exceptions do not weaken exact-file comparisons for ordinary review actions.
 

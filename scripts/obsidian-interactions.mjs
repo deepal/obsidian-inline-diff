@@ -30,6 +30,47 @@ async function bounds(mode) {
     }), scroll: [root.scrollWidth, root.scrollHeight] };
   }, mode);
 }
+async function proseGeometry(mode, contentWidth) {
+  return page.evaluate(async ({ mode, contentWidth }) => {
+    await document.fonts.ready;
+    const measure = () => {
+      const root = app.workspace.activeLeaf.view.contentEl.querySelector(mode === "reading" ? ".markdown-reading-view" : ".markdown-source-view");
+      const rect = element => { const r = element.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; };
+      const paragraphs = [...root.querySelectorAll(mode === "reading" ? "p" : ".cm-line")].filter(element => !element.closest(".inline-diff-review"));
+      const above = paragraphs.find(element => element.textContent === "Above paragraph."), below = paragraphs.find(element => element.textContent === "Below paragraph.");
+      const comparison = root.querySelector(".inline-diff-review");
+      const alternatives = comparison ? [...comparison.querySelectorAll(".inline-diff-content > p")] : [paragraphs.find(element => element.textContent.startsWith("The service"))];
+      if (!comparison && contentWidth !== undefined) alternatives[0].style.width = `${contentWidth}px`;
+      const content = alternatives.map(element => {
+        const box = element.getBoundingClientRect(), lines = [], walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+        let text;
+        while ((text = walker.nextNode())) {
+          const range = document.createRange(); range.selectNodeContents(text);
+          for (const r of range.getClientRects()) {
+            if (!r.width) continue;
+            const y = r.y - box.y, line = lines.find(line => Math.abs(line[1] - y) <= .5);
+            if (line) { const right = Math.max(line[0] + line[2], r.right - box.x); line[0] = Math.min(line[0], r.x - box.x); line[2] = right - line[0]; }
+            else lines.push([r.x - box.x, y, r.width, r.height]);
+          }
+        }
+        return { rect: rect(element), lines };
+      });
+      const borders = element => { const s = getComputedStyle(element); return [s.borderTopWidth, s.borderRightWidth, s.borderBottomWidth, s.borderLeftWidth].map(parseFloat); };
+      const style = comparison && getComputedStyle(comparison);
+      return { above: rect(above), below: rect(below), block: rect(comparison ?? alternatives[0]), content, outer: style && { margin: [style.marginTop, style.marginRight, style.marginBottom, style.marginLeft].map(parseFloat), border: borders(comparison), shadow: style.boxShadow }, sideBorders: comparison && [...comparison.querySelectorAll(":scope > .inline-diff-side")].map(borders) };
+    };
+    let previous = "", stable = 0;
+    const deadline = performance.now() + 10000;
+    while (performance.now() < deadline) {
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      const measured = measure(), serialized = JSON.stringify(measured);
+      stable = serialized === previous && document.fonts.status === "loaded" ? stable + 1 : 0;
+      if (stable >= 12) return measured;
+      previous = serialized;
+    }
+    throw Error("Prose geometry did not settle.");
+  }, { mode, contentWidth });
+}
 function equalBounds(before, after) {
   assert.equal(before.rects.length, after.rects.length);
   for (const [index, rect] of before.rects.entries()) for (let coordinate = 0; coordinate < 4; coordinate++) assert.ok(Math.abs(rect[coordinate] - after.rects[index][coordinate]) <= .5, `hover moved rectangle ${index}: ${JSON.stringify(rect)} -> ${JSON.stringify(after.rects[index])}`);
@@ -38,8 +79,11 @@ function equalBounds(before, after) {
 async function hoverFirst(mode) {
   const target = page.locator(mode === "source" ? ".cm-content .inline-diff-source-mark" : ".markdown-source-view .inline-diff-proposal-anchor").first();
   await page.mouse.move(5, 5);
-  if (mode !== "source") await page.locator(".markdown-source-view .inline-diff-review").first().hover();
-  await target.hover(); await page.locator(".inline-diff-toolbar:visible").waitFor(); return target;
+  await page.waitForFunction(() => !document.querySelector(".inline-diff-toolbar"));
+  const block = mode !== "source" && await target.evaluate(element => element.classList.contains("inline-diff-review"));
+  if (mode !== "source" && !block) await page.locator(".markdown-source-view .inline-diff-review").first().hover({ position: { x: 6, y: 8 } });
+  // Use the block padding: its centre can land under a word's floating toolbar.
+  await target.hover(block ? { position: { x: 6, y: 8 } } : {}); await page.locator(".inline-diff-toolbar:visible").waitFor(); return target;
 }
 async function prepareHover(mode) {
   const target = page.locator(mode === "source" ? ".cm-content .inline-diff-source-mark" : ".markdown-source-view .inline-diff-proposal-anchor").first();
@@ -205,6 +249,19 @@ try {
       await page.waitForFunction(palette => document.body.classList.contains(`theme-${palette}`), palette);
       for (const mode of ["source", "live", "reading"]) await check(`${theme || "Default"}/${palette}/${mode}/hover-layout`, async () => {
         await setFixture(page, source, mode); await ready(mode);
+        if (mode !== "source") {
+          const scope = page.locator(mode === "reading" ? ".markdown-reading-view" : ".markdown-source-view");
+          const colours = await scope.locator(".inline-diff-review .inline-diff-side").evaluateAll(elements => elements.map(element => {
+            const canvas = element.ownerDocument.createElement("canvas"); canvas.width = canvas.height = 1;
+            const context = canvas.getContext("2d"); context.fillStyle = getComputedStyle(element).backgroundColor; context.fillRect(0, 0, 1, 1);
+            return { before: element.classList.contains("inline-diff-before"), rgba: [...context.getImageData(0, 0, 1, 1).data] };
+          }));
+          assert.equal(colours.length, 4);
+          for (const { before, rgba: [red, green, blue, alpha] } of colours) {
+            assert.ok(alpha > 0 && alpha <= 32, "whole-block tint must be visible and very light");
+            assert.ok(before ? red > green && red > blue : green > red && green > blue, "before/after panels must have red/green tints");
+          }
+        }
         if (mode === "reading") {
           await page.locator(".markdown-reading-view .inline-diff-review").first().hover();
           assert.equal(await page.locator(".inline-diff-toolbar:visible").count(), 0);
@@ -228,6 +285,40 @@ try {
           await page.evaluate(() => app.workspace.activeLeaf.view.editor.focus());
           await page.keyboard.press("Meta+z"); assert.equal(await contents(), source);
           await page.keyboard.press("Meta+Shift+z"); assert.equal(await contents(), source.replace("{~~old~>new~~}", "old"));
+        }
+      });
+      for (const mode of ["live", "reading"]) await check(`${theme || "Default"}/${palette}/${mode}/padded-prose-layout`, async () => {
+        const before = "The service checks for updates every ten seconds and retries twice if a request fails. This keeps the interface responsive while reducing background traffic. The request is recorded so that the operator can review what happened.";
+        const after = "The service checks for updates every thirty seconds and retries four times if a request fails. This reduces background traffic while giving temporary failures more time to recover. The request is recorded so that the operator can review what happened.";
+        const wrap = text => `Above paragraph.\n\n${text}\n\nBelow paragraph.\n`;
+        for (const width of [720, 1280]) {
+          await page.setViewportSize({ width, height: 900 });
+          await setFixture(page, wrap(`{~~${before}~>${after}~~}`), mode); await ready(mode, 1);
+          const diff = await proseGeometry(mode);
+          await setFixture(page, wrap(before), mode); const nativeBefore = await proseGeometry(mode, diff.content[0].rect[2]);
+          await setFixture(page, wrap(after), mode); const nativeAfter = await proseGeometry(mode, diff.content[1].rect[2]);
+          const close = (actual, expected, label) => assert.ok(Math.abs(actual - expected) <= .5, `${label}: ${actual} instead of ${expected}`);
+          assert.deepEqual([diff.outer.margin[0], diff.outer.margin[2]], [0, 0], "no extra outer vertical margin");
+          assert.deepEqual(diff.outer.border, [0, 0, 0, 0], "no surrounding frame");
+          assert.equal(diff.outer.shadow, "none", "no frame shadow");
+          assert.deepEqual(diff.sideBorders, [[0, 0, 0, 3], [0, 0, 0, 3]], "only the coloured left borders remain");
+          close(diff.content[0].rect[1] - diff.block[1], 8, "original top padding");
+          close(diff.block[1] + diff.block[3] - diff.content[1].rect[1] - diff.content[1].rect[3], 8, "original bottom padding");
+          close(diff.block[3], diff.content[0].rect[3] + diff.content[1].rect[3] + 32, "only original vertical padding adds height");
+          for (const [index, native] of [nativeBefore, nativeAfter].entries()) {
+            const actual = diff.content[index], expected = native.content[0];
+            close(actual.rect[0] - diff.block[0], 15, "original left padding and indicator");
+            close(diff.block[0] + diff.block[2] - actual.rect[0] - actual.rect[2], 12, "original right padding");
+            for (const coordinate of [2, 3]) close(actual.rect[coordinate], expected.rect[coordinate], "native text bounds at the padded width");
+            assert.equal(actual.lines.length, expected.lines.length, "native wrapping");
+            for (let line = 0; line < expected.lines.length; line++) for (let coordinate = 0; coordinate < 4; coordinate++) close(actual.lines[line][coordinate], expected.lines[line][coordinate], "native line bounds");
+          }
+          await setFixture(page, wrap(`{~~${before}~>${after}~~}`), mode); await ready(mode, 1); await proseGeometry(mode);
+          const layout = await bounds(mode);
+          if (mode === "live") await hoverFirst("live"); else await page.locator(".markdown-reading-view .inline-diff-review").hover();
+          equalBounds(layout, await bounds(mode));
+          measurements.proseSpacing ??= {};
+          measurements.proseSpacing[`${theme || "Default"}/${palette}/${mode}/${width}`] = { outerMargin: diff.outer.margin, sideBorders: diff.sideBorders, contentWidth: diff.content[0].rect[2], beforeLines: diff.content[0].lines.length, afterLines: diff.content[1].lines.length, verticalPadding: diff.block[3] - diff.content[0].rect[3] - diff.content[1].rect[3] };
         }
       });
     }

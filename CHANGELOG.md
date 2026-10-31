@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/deepal/obsidian-inline-diff/compare/1.0.2...1.1.0) (2026-10-31)
+
+### Features
+
+* add pending review status bar controls ([96a4263](https://github.com/deepal/obsidian-inline-diff/commit/96a4263af7ca26dc43e76ecf62480a776e6f3be0))
+
 ## [1.0.2](https://github.com/deepal/obsidian-inline-diff/compare/1.0.1...1.0.2) (2026-10-31)
 
 ### Bug Fixes

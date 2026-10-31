@@ -2,6 +2,8 @@
 
 Review proposed changes in an Obsidian note, with rendered before and after comparisons and individual accept/reject actions.
 
+![Inline Diff showing a proposed paragraph edit with accept and reject controls](docs/images/readme-review.png)
+
 Requires desktop Obsidian **1.14.5 or newer**. The tested baseline is 1.14.5 on macOS. Mobile support is not included.
 
 ```markdown

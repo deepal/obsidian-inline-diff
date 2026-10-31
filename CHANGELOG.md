@@ -1,3 +1,9 @@
+## [1.0.2](https://github.com/deepal/obsidian-inline-diff/compare/1.0.1...1.0.2) (2026-10-31)
+
+### Bug Fixes
+
+* keep review buttons at the top right of change blocks ([f51841d](https://github.com/deepal/obsidian-inline-diff/commit/f51841dc470091c2139479a2cef688b5ebdce79e))
+
 ## [1.0.1](https://github.com/deepal/obsidian-inline-diff/compare/1.0.0...1.0.1) (2026-10-31)
 
 ### Bug Fixes

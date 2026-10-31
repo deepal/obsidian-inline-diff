@@ -34,3 +34,11 @@
 .inline-diff-toolbar > button > svg { width: 18px; height: 18px; flex: none; }
 .inline-diff-toolbar [data-decision="accept"] { color: var(--text-success, #22863a); }
 .inline-diff-toolbar [data-decision="reject"] { color: var(--text-error, #cb2431); }
+.inline-diff-status { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.inline-diff-status[hidden] { display: none !important; }
+.inline-diff-status-actions { display: inline-flex; align-items: center; gap: 2px; height: 1em; overflow: visible; }
+.inline-diff-status-actions > button.clickable-icon { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 18px; min-width: 20px; min-height: 0; padding: 2px; margin: 0; border: 0; box-shadow: none; background: transparent; }
+.inline-diff-status-actions > button > svg { width: 14px; height: 14px; }
+.inline-diff-status-actions [data-decision="accept"] { color: var(--text-success, #22863a); }
+.inline-diff-status-actions [data-decision="reject"] { color: var(--text-error, #cb2431); }
+.inline-diff-status-actions > button:disabled { opacity: .4; cursor: default; }

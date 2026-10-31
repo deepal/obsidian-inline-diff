@@ -29,6 +29,8 @@ Hover a rendered change block to reveal check/X icon buttons at its top right. T
 
 For keyboard review, focus the comparison and press Enter or Space to reach the icon buttons. When a block contains several changes, floating numbered anchors appear on hover or keyboard focus for independent decisions, including ambiguous visual matches. Escape returns to the anchor. Commands in the command palette also accept/reject the current change or all changes, and navigate between changes. Assign hotkeys through Obsidian's normal Hotkeys settings.
 
+The main-window status bar shows the number of pending changes in its selected note. In Source and Live Preview, the adjacent check/X buttons accept or reject all proposals in that note in one undoable action. Reading view shows the count only. The item disappears when there are no pending proposals. Popouts retain their block controls; the main status bar always belongs to the selected main-window note.
+
 Every review action uses native editor history. One undo restores the proposal. Changed or stale targets are refused so an action cannot overwrite a newer edit.
 
 Settings expose independent addition/deletion text and background colours, with theme-aware defaults and a reset button. Comparison bodies are display-only, including task checkboxes and generated Bases views. Links, callout folding, and normal media display remain available.
@@ -72,7 +74,7 @@ The runner launches a separate app profile, verifies its disposable-vault identi
 
 Use `OBSIDIAN_EXECUTABLE` to select a different app binary. The default is the standard macOS application location. Run the matrix or interaction suite separately with `npm run test:obsidian:matrix` and `npm run test:obsidian:interactions`. Diagnostic output and screenshots go into ignored `.qa/` files.
 
-See [testing details](CONTRIBUTING.md), the [coverage matrix](docs/coverage.md), and the [verification report](docs/test-report.md).
+See [testing details](CONTRIBUTING.md), the [coverage matrix](docs/coverage.md), the [original verification report](docs/test-report.md), and [pending-review status verification](docs/pending-review-testing.md).
 
 ## Releases
 

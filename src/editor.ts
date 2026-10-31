@@ -121,7 +121,10 @@ export function editorExtension(plugin: InlineDiffPlugin) {
         this.view.dispatch({ effects: focusDiffs.of(this.view.hasFocus || cellFocus) });
       });
     };
-    update(update: ViewUpdate): void { if (update.focusChanged) this.scheduleFocus(); }
+    update(update: ViewUpdate): void {
+      if (update.focusChanged) this.scheduleFocus();
+      if (update.docChanged || update.transactions.some(transaction => transaction.reconfigured)) plugin.scheduleReviewStatus();
+    }
     destroy(): void {
       if (this.frame !== null) this.view.dom.win.cancelAnimationFrame(this.frame);
       this.view.dom.win.removeEventListener("focus", this.scheduleFocus);
@@ -146,5 +149,11 @@ export function editorExtension(plugin: InlineDiffPlugin) {
     },
     pointerleave(_event, editor) { plugin.scheduleOverlayHide(editor.dom.ownerDocument); },
   } });
-  return [EditorView.editorAttributes.of({ class: "inline-diff-editor" }), field, events];
+  return {
+    extension: [EditorView.editorAttributes.of({ class: "inline-diff-editor" }), field, events],
+    parsedNote(state: EditorState): ParsedNote | undefined {
+      const canonical = canonicalDocument(state);
+      return !canonical || canonical === state.doc ? state.field(field, false)?.note : undefined;
+    },
+  };
 }

@@ -77,6 +77,10 @@ module.exports = class extends o.Plugin {
      return null;
     }))});
    },
+   makeReadOnly(view) {
+    const s=require('@codemirror/state');
+    view.editor.cm.dispatch({effects:s.StateEffect.appendConfig.of(s.EditorState.readOnly.of(true))});
+   },
    async render(markdown) {
     const root = document.createElement('div');
     root.className = 'markdown-rendered inline-diff-review inline-diff-qa-oracle';

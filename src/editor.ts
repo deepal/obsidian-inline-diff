@@ -1,5 +1,5 @@
 import { Prec, StateEffect, StateField, type EditorState } from "@codemirror/state";
-import { Decoration, EditorView, ViewPlugin, WidgetType, type DecorationSet } from "@codemirror/view";
+import { Decoration, EditorView, ViewPlugin, WidgetType, type DecorationSet, type ViewUpdate } from "@codemirror/view";
 import { editorInfoField, editorLivePreviewField, MarkdownView, type TFile } from "obsidian";
 import { parseNote, reviewGroups, type ParsedNote, type ReviewGroup } from "./model";
 import { Comparison } from "./render";
@@ -7,7 +7,8 @@ import { applyColours } from "./settings";
 import type InlineDiffPlugin from "./main";
 
 export const refreshDiffs = StateEffect.define<null>();
-interface Model { note: ParsedNote; groups: ReviewGroup[]; decorations: DecorationSet }
+const focusDiffs = StateEffect.define<boolean>();
+interface Model { note: ParsedNote; groups: ReviewGroup[]; decorations: DecorationSet; focused: boolean; revealSelection: boolean }
 
 function markdownView(state: EditorState): MarkdownView | null {
   const info = state.field(editorInfoField, false);
@@ -40,14 +41,14 @@ class ComparisonWidget extends WidgetType {
 }
 
 export function editorExtension(plugin: InlineDiffPlugin) {
-  const build = (state: EditorState, note: ParsedNote, groups: ReviewGroup[], owned: boolean): Model => {
-    if (!owned || !markdownView(state)) return { note, groups, decorations: Decoration.none };
+  const build = (state: EditorState, note: ParsedNote, groups: ReviewGroup[], owned: boolean, focused: boolean, revealSelection: boolean): Model => {
+    if (!owned || !markdownView(state)) return { note, groups, decorations: Decoration.none, focused, revealSelection };
     const decorations: { from: number; to: number; value: Decoration }[] = [];
     const live = state.field(editorLivePreviewField, false) ?? false;
     if (live && !groups.length) groups = reviewGroups(note);
     if (live) {
       for (const group of groups) {
-        const editing = state.selection.ranges.some(range => range.from >= group.from && range.from < group.to);
+        const editing = focused && revealSelection && state.selection.ranges.some(range => range.from >= group.from && range.from < group.to);
         const file = markdownView(state)?.file ?? null;
         if (!editing) decorations.push({ from: group.from, to: group.to, value: Decoration.replace({ widget: new ComparisonWidget(plugin, note, group, plugin.settingsVersion, file, file?.path ?? ""), block: true }) });
         else addSource(group.proposals);
@@ -67,22 +68,27 @@ export function editorExtension(plugin: InlineDiffPlugin) {
         }
       }
     }
-    return { note, groups, decorations: Decoration.set(decorations.map(range => range.value.range(range.from, range.to)), true) };
+    return { note, groups, decorations: Decoration.set(decorations.map(range => range.value.range(range.from, range.to)), true), focused, revealSelection };
   };
   const field = StateField.define<Model>({
     create(state) {
       const note = parseNote(state.doc.toString());
       const canonical = canonicalDocument(state);
-      return build(state, note, [], !canonical || canonical === state.doc);
+      return build(state, note, [], !canonical || canonical === state.doc, false, true);
     },
     update(model, transaction) {
       const canonical = canonicalDocument(transaction.startState);
       const owned = !canonical || canonical === transaction.startState.doc;
+      const focus = transaction.effects.find(effect => effect.is(focusDiffs));
+      const focused = focus ? focus.value : model.focused;
       if (transaction.docChanged) {
         const note = parseNote(transaction.newDoc.toString());
-        return build(transaction.state, note, [], owned);
+        // Host reloads map the old caret into the agent's replacement. That
+        // remembered caret is not a request to edit the newly arrived proposal.
+        const editing = ["input", "delete", "undo", "redo"].some(event => transaction.isUserEvent(event));
+        return build(transaction.state, note, [], owned, focused, editing);
       }
-      if (transaction.selection || transaction.effects.some(effect => effect.is(refreshDiffs)) || transaction.reconfigured) return build(transaction.state, model.note, model.groups, owned);
+      if (transaction.selection || focus || transaction.effects.some(effect => effect.is(refreshDiffs)) || transaction.reconfigured) return build(transaction.state, model.note, model.groups, owned, focused, transaction.selection ? true : model.revealSelection);
       return model;
     },
     // Native table/callout replacement widgets are installed after extensions
@@ -96,14 +102,32 @@ export function editorExtension(plugin: InlineDiffPlugin) {
       view.dom.classList.add("inline-diff-editor"); applyColours(view.dom, plugin.settings);
       // Newly created editors (notably popouts) can initialize this field before
       // Obsidian installs editorInfoField. Re-evaluate after the host attaches it.
-      this.frame = view.dom.win.requestAnimationFrame(() => {
-        this.frame = null;
-        if (view.dom.isConnected) view.dispatch({ effects: refreshDiffs.of(null) });
-      });
+      this.frame = null;
+      this.scheduleFocus();
+      view.dom.win.addEventListener("focus", this.scheduleFocus);
+      view.dom.win.addEventListener("blur", this.scheduleFocus);
+      view.dom.addEventListener("focusin", this.scheduleFocus);
+      view.dom.addEventListener("focusout", this.scheduleFocus);
     }
-    update(): void { /* Decorations own rendering; event handlers inspect current state. */ }
+    private scheduleFocus = (): void => {
+      if (this.frame !== null) return;
+      this.frame = this.view.dom.win.requestAnimationFrame(() => {
+        this.frame = null;
+        if (!this.view.dom.isConnected) return;
+        const doc = this.view.dom.ownerDocument, active = doc.activeElement;
+        // A native table-cell editor has its own CodeMirror focus, but is still
+        // an editing surface of this note. Do not replace it on root blur.
+        const cellFocus = doc.hasFocus() && !!active?.matches('.cm-content[contenteditable="true"]') && this.view.dom.contains(active);
+        this.view.dispatch({ effects: focusDiffs.of(this.view.hasFocus || cellFocus) });
+      });
+    };
+    update(update: ViewUpdate): void { if (update.focusChanged) this.scheduleFocus(); }
     destroy(): void {
       if (this.frame !== null) this.view.dom.win.cancelAnimationFrame(this.frame);
+      this.view.dom.win.removeEventListener("focus", this.scheduleFocus);
+      this.view.dom.win.removeEventListener("blur", this.scheduleFocus);
+      this.view.dom.removeEventListener("focusin", this.scheduleFocus);
+      this.view.dom.removeEventListener("focusout", this.scheduleFocus);
       this.view.dom.classList.remove("inline-diff-editor");
       applyColours(this.view.dom, { additionText: "", additionBackground: "", deletionText: "", deletionBackground: "" });
     }

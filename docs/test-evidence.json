@@ -2,21 +2,21 @@
   "plugin": "inline-diff",
   "version": "0.1.0",
   "unit": {
-    "tests": 505,
+    "tests": 509,
     "failures": 0,
     "skipped": 0,
     "generatedCases": 10000,
     "seed": "0x0194af32"
   },
   "matrix": {
-    "date": "2026-10-30T22:51:19.267Z",
+    "date": "2026-10-31T00:04:44.187Z",
     "platform": "darwin",
     "artifacts": {
-      "identity": "inline-diff:0.1.0",
+      "identity": "inline-diff:0.1.0:live-preview-refresh",
       "sha256": {
-        "main.js": "af9fc463ae358b2bf0fb45d52bc56f407cca13565825f798918d00248a720968",
+        "main.js": "72196a0b34e96e1590f7a090be0e3a652d3ea36451d3743d8522b54d29cf0d40",
         "manifest.json": "8bc36e38cd1eaf8a01fbbf6b01372a2067b94e20e244483a023572f35edba15c",
-        "styles.css": "c03ac79bfe3fa497e8e986f779a63b8dcc254cb15edef0794755db89dbe41a8e"
+        "styles.css": "b28ea91e53a761a7076ebdae09093caa053c2f13b42139c425d33a2b0f685452"
       }
     },
     "version": "1.14.5",
@@ -1349,17 +1349,27 @@
     "errors": []
   },
   "interactions": {
-    "date": "2026-10-30T22:51:36.700Z",
+    "date": "2026-10-31T00:05:03.928Z",
     "platform": "darwin 27.0.0 arm64",
     "artifacts": {
-      "identity": "inline-diff:0.1.0",
+      "identity": "inline-diff:0.1.0:live-preview-refresh",
       "sha256": {
-        "main.js": "af9fc463ae358b2bf0fb45d52bc56f407cca13565825f798918d00248a720968",
+        "main.js": "72196a0b34e96e1590f7a090be0e3a652d3ea36451d3743d8522b54d29cf0d40",
         "manifest.json": "8bc36e38cd1eaf8a01fbbf6b01372a2067b94e20e244483a023572f35edba15c",
-        "styles.css": "c03ac79bfe3fa497e8e986f779a63b8dcc254cb15edef0794755db89dbe41a8e"
+        "styles.css": "b28ea91e53a761a7076ebdae09093caa053c2f13b42139c425d33a2b0f685452"
       }
     },
     "passed": [
+      "external Live Preview refresh with inside caret / editor focus",
+      "external Live Preview refresh with inside caret / elsewhere focus",
+      "external Live Preview refresh with outside caret / editor focus",
+      "external Live Preview refresh with outside caret / elsewhere focus",
+      "a freshly arrived proposal can be accepted and undone without first clicking the editor",
+      "deliberate native editing reveals source and blur restores the comparison",
+      "agent edits refresh two panes with remembered carets inside the changed paragraph",
+      "live comparison omits redundant UI and preserves hidden-change evidence",
+      "reading comparison omits redundant UI and preserves hidden-change evidence",
+      "Enter on a rendered link does not invoke review controls",
       "Reading creates no review toolbar",
       "Default/light/source/hover-layout",
       "Default/light/live/hover-layout",
@@ -1444,23 +1454,23 @@
           "max": 0.3999999761581421
         },
         "live": {
-          "p95": 0.5,
-          "max": 0.5
+          "p95": 1.100000023841858,
+          "max": 1.100000023841858
         }
       },
       "100000/200": {
-        "initial": 19.199999928474426,
-        "p95": 5.299999952316284,
-        "max": 5.299999952316284,
-        "liveRendered": 2,
-        "readingRendered": 5
+        "initial": 28.399999976158142,
+        "p95": 7.700000047683716,
+        "max": 7.700000047683716,
+        "liveRendered": 3,
+        "readingRendered": 6
       },
       "1000000/1000": {
-        "initial": 44.299999952316284,
-        "p95": 23.100000023841858,
-        "max": 23.100000023841858,
+        "initial": 42.799999952316284,
+        "p95": 22.100000023841858,
+        "max": 22.100000023841858,
         "liveRendered": 2,
-        "readingRendered": 3
+        "readingRendered": 4
       }
     },
     "errors": []

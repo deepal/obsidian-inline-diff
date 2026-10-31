@@ -38,6 +38,7 @@ function equalBounds(before, after) {
 async function hoverFirst(mode) {
   const target = page.locator(mode === "source" ? ".cm-content .inline-diff-source-mark" : ".markdown-source-view .inline-diff-proposal-anchor").first();
   await page.mouse.move(5, 5);
+  if (mode !== "source") await page.locator(".markdown-source-view .inline-diff-review").first().hover();
   await target.hover(); await page.locator(".inline-diff-toolbar:visible").waitFor(); return target;
 }
 async function prepareHover(mode) {
@@ -76,6 +77,110 @@ try {
   assert.equal(await page.evaluate(() => inlineDiffQa.version), "1.14.5");
   measurements.runtime = await page.evaluate(() => ({ obsidian: inlineDiffQa.version, electron: process.versions.electron, chromium: process.versions.chrome, node: process.versions.node }));
   measurements.frontmatter = await page.evaluate(() => ({ unclosed: inlineDiffQa.frontmatterInfo("---\nBody.\n").exists, closed: inlineDiffQa.frontmatterInfo("---\ntitle: Test\n---\nBody.\n").exists }));
+  if (matches("refresh")) {
+    const original = "Intro.\n\nFood, water and livelihoods are connected.\n\nTail.\n";
+    const proposed = "Intro.\n\n{~~Food, water and livelihoods are connected.~>Food, water and livelihoods depend on one another.~~}\n\nTail.\n";
+    for (const position of ["inside", "outside"]) for (const focus of ["editor", "elsewhere"]) await check(`external Live Preview refresh with ${position} caret / ${focus} focus`, async () => {
+      await setFixture(page, original, "live");
+      await page.evaluate(({ position, focus }) => {
+        const view = app.workspace.activeLeaf.view;
+        view.editor.focus(); view.editor.setCursor(position === "inside" ? 2 : 4, position === "inside" ? 8 : 0);
+        if (focus === "elsewhere") { const input = document.createElement("input"); input.id = "qa-focus"; document.body.append(input); input.focus(); }
+      }, { position, focus });
+      try {
+        await fs.writeFile(path.join(session.vault, "Review.md"), proposed);
+        await page.waitForFunction(proposed => app.workspace.activeLeaf.view.editor.getValue() === proposed, proposed);
+        await ready("live", 1);
+        const state = await page.evaluate(() => ({ cursor: app.workspace.activeLeaf.view.editor.posToOffset(app.workspace.activeLeaf.view.editor.getCursor()), focus: document.activeElement?.id, marks: app.workspace.activeLeaf.view.contentEl.querySelectorAll(".inline-diff-source-mark").length }));
+        assert.equal(state.marks, 0);
+        if (position === "inside") assert.ok(state.cursor >= proposed.indexOf("{~~") && state.cursor < proposed.indexOf("~~}") + 3, "refresh must not move the remembered caret out of the proposal");
+        if (focus === "elsewhere") assert.equal(state.focus, "qa-focus", "agent edits must not steal focus");
+        assert.equal(await contents(), proposed);
+        assert.equal(await fs.readFile(path.join(session.vault, "Review.md"), "utf8"), proposed);
+      } finally { await page.evaluate(() => document.querySelector("#qa-focus")?.remove()); }
+    });
+    await check("a freshly arrived proposal can be accepted and undone without first clicking the editor", async () => {
+      await setFixture(page, original, "live");
+      await page.evaluate(() => {
+        const view = app.workspace.activeLeaf.view; view.editor.focus(); view.editor.setCursor(2, 8);
+        const input = document.createElement("input"); input.id = "qa-focus"; document.body.append(input); input.focus();
+      });
+      try {
+        await fs.writeFile(path.join(session.vault, "Review.md"), proposed);
+        await page.waitForFunction(proposed => app.workspace.activeLeaf.view.editor.getValue() === proposed, proposed);
+        await ready("live", 1);
+        await page.locator(".markdown-source-view .inline-diff-changed").first().hover();
+        await page.locator(".inline-diff-toolbar:visible [data-decision=accept]").click();
+        await page.evaluate(async () => { await app.plugins.plugins["inline-diff"].lastResolution; await inlineDiffQa.save(app.workspace.activeLeaf.view); });
+        const expected = "Intro.\n\nFood, water and livelihoods depend on one another.\n\nTail.\n";
+        assert.equal(await contents(), expected);
+        assert.equal(await fs.readFile(path.join(session.vault, "Review.md"), "utf8"), expected);
+        await page.keyboard.press("Meta+z"); assert.equal(await contents(), proposed);
+      } finally { await page.evaluate(() => document.querySelector("#qa-focus")?.remove()); }
+    });
+    await check("deliberate native editing reveals source and blur restores the comparison", async () => {
+      const text = "Intro.\n\nA {~~old~>new~~} sentence.\n\nTail.\n";
+      await setFixture(page, text, "live"); await ready("live", 1);
+      await page.evaluate(() => { const view = app.workspace.activeLeaf.view; view.editor.focus(); view.editor.setCursor(view.editor.offsetToPos(view.editor.getValue().indexOf("old"))); });
+      await ready("source");
+      await page.keyboard.insertText("x");
+      const typed = text.replace("old", "xold");
+      assert.equal(await contents(), typed);
+      assert.equal(await page.locator(".markdown-source-view .inline-diff-review").count(), 0);
+      await page.evaluate(() => { const input = document.createElement("input"); input.id = "qa-focus"; document.body.append(input); input.focus(); });
+      try {
+        await ready("live", 1);
+        assert.equal(await page.evaluate(() => document.activeElement.id), "qa-focus");
+        assert.equal(await contents(), typed);
+      } finally { await page.evaluate(() => document.querySelector("#qa-focus")?.remove()); }
+      await page.evaluate(() => app.workspace.activeLeaf.view.editor.focus());
+      await ready("source");
+      assert.equal(await contents(), typed);
+    });
+    await check("agent edits refresh two panes with remembered carets inside the changed paragraph", async () => {
+      await setFixture(page, original, "live");
+      await page.evaluate(async () => {
+        globalThis.qaOriginalLeaf = app.workspace.activeLeaf;
+        globalThis.qaSecondLeaf = app.workspace.getLeaf("split");
+        await qaSecondLeaf.openFile(app.vault.getAbstractFileByPath("Review.md"));
+        await qaSecondLeaf.setViewState({ type: "markdown", state: { file: "Review.md", mode: "source", source: false } });
+        for (const leaf of [qaOriginalLeaf, qaSecondLeaf]) leaf.view.editor.setCursor(2, 8);
+        app.workspace.setActiveLeaf(qaSecondLeaf, { focus: true }); qaSecondLeaf.view.editor.focus();
+      });
+      try {
+        await fs.writeFile(path.join(session.vault, "Review.md"), proposed);
+        await page.waitForFunction(proposed => [qaOriginalLeaf, qaSecondLeaf].every(leaf => leaf.view.editor.getValue() === proposed && leaf.view.contentEl.querySelector(".inline-diff-review[data-inline-diff-ready=true]")), proposed);
+        assert.equal(await page.evaluate(() => app.workspace.activeLeaf === qaSecondLeaf), true);
+      } finally { await page.evaluate(() => { qaSecondLeaf.detach(); app.workspace.setActiveLeaf(qaOriginalLeaf, { focus: true }); delete globalThis.qaSecondLeaf; delete globalThis.qaOriginalLeaf; }); }
+    });
+    for (const mode of ["live", "reading"]) await check(`${mode} comparison omits redundant UI and preserves hidden-change evidence`, async () => {
+      const scope = page.locator(mode === "reading" ? ".markdown-reading-view" : ".markdown-source-view");
+      await setFixture(page, source, mode); await ready(mode);
+      assert.equal(await scope.locator(".inline-diff-review .inline-diff-heading,.inline-diff-review .inline-diff-side-label,.inline-diff-review .inline-diff-source").count(), 0);
+      assert.equal(await scope.locator(".inline-diff-review .inline-diff-before[aria-label=Before]").count(), 2);
+      assert.equal(await scope.locator(".inline-diff-review .inline-diff-after[aria-label=After]").count(), 2);
+      const hidden = "Intro.\n\nA {~~old~>new~~} word and {~~[Same label](Target.md)~>[Same label](Other.md)~~}.\n\nTail.\n";
+      await setFixture(page, hidden, mode); await ready(mode, 1);
+      const details = scope.locator(".inline-diff-review .inline-diff-source");
+      assert.equal(await details.locator(".inline-diff-source-entry").count(), 1);
+      assert.match(await details.textContent(), /Target\.md/);
+      assert.match(await details.textContent(), /Other\.md/);
+      assert.equal(await details.locator(".inline-diff-source-entry").getAttribute("tabindex"), mode === "reading" ? null : "0");
+      if (mode === "reading") assert.equal(await page.locator(".inline-diff-toolbar,.markdown-reading-view .inline-diff-proposal-anchor").count(), 0);
+      assert.equal(await contents(), hidden);
+    });
+    await check("Enter on a rendered link does not invoke review controls", async () => {
+      const text = "Intro.\n\nA {~~[old label](Target.md)~>[new label](Other.md)~~} link.\n\nTail.\n";
+      await setFixture(page, text, "live"); await ready("live", 1);
+      await page.locator(".markdown-source-view .inline-diff-after a.internal-link").focus();
+      await page.evaluate(() => document.activeElement.addEventListener("keydown", event => queueMicrotask(() => { globalThis.qaLinkPrevented = event.defaultPrevented; }), { once: true }));
+      await page.keyboard.press("Enter");
+      assert.equal(await page.evaluate(() => globalThis.qaLinkPrevented), false);
+      assert.equal(await page.locator(".inline-diff-toolbar button:focus").count(), 0);
+      await page.evaluate(() => { delete globalThis.qaLinkPrevented; });
+      assert.equal(await fs.readFile(path.join(session.vault, "Review.md"), "utf8"), text);
+    });
+  }
   if (matches("safety")) await check("Reading creates no review toolbar", async () => {
     await setFixture(page, source, "reading");
     await page.evaluate(async () => {
@@ -139,6 +244,7 @@ try {
     });
     await check("shared table proposals resolve independently", async () => {
       await setFixture(page, source, "live"); await ready("live");
+      await page.locator(".markdown-source-view .inline-diff-review").first().hover();
       await page.locator(".markdown-source-view .inline-diff-review").first().locator(".inline-diff-proposal-anchor").nth(1).hover();
       await page.locator(".inline-diff-toolbar:visible [data-decision=accept]").click();
       await page.evaluate(() => app.plugins.plugins["inline-diff"].lastResolution);
@@ -563,7 +669,7 @@ try {
       if (popup) break; await new Promise(resolve => setTimeout(resolve, 50));
     }
     assert.ok(popup, "native popout page");
-    await popup.waitForSelector(".inline-diff-proposal-anchor"); await popup.locator(".inline-diff-proposal-anchor").first().hover();
+    await popup.waitForSelector(".inline-diff-proposal-anchor"); await popup.locator(".inline-diff-review").first().hover(); await popup.locator(".inline-diff-proposal-anchor").first().hover();
     await popup.locator(".inline-diff-toolbar:visible [data-decision=accept]").click();
     await page.evaluate(() => app.plugins.plugins["inline-diff"].lastResolution);
     assert.equal(await page.evaluate(() => qaPopoutLeaf.view.editor.getValue()), source.replace("{~~old~>new~~}", "new"));

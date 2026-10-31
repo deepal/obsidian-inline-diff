@@ -11,7 +11,7 @@ function setup(source, editable = false) {
   const document = dom(), note = parseNote(source), group = reviewGroups(note)[0];
   const view = editable ? { getMode: () => "source" } : null;
   const calls = [];
-  const plugin = { isActive: true, overlay: () => ({ show: (...args) => calls.push(args), scheduleHide() {} }), scheduleOverlayHide() {} };
+  const plugin = { isActive: true, overlay: () => ({ show: (...args) => calls.push(args), focus() {}, scheduleHide() {} }), scheduleOverlayHide() {} };
   const comparison = new Comparison({}, document.window.document, plugin, note, group, "Review.md", view, defaults);
   comparison.load(); document.window.document.body.append(comparison.element);
   return { dom: document, comparison, note, group, calls };
@@ -37,13 +37,60 @@ test("independent anchors retain exact identity for multiple proposals", async (
   assert.equal(f.calls[0][1].source, f.note.source);
   f.comparison.unload(); f.dom.window.close();
 });
+test("ordinary comparisons have no title, visible side labels, source section, or single-change badge", async () => {
+  for (const editable of [true, false]) {
+    const f = setup("A {~~old~>new~~} sentence.", editable);
+    await f.comparison.ready;
+    const root = f.comparison.element;
+    assert.equal(root.querySelector(".inline-diff-heading,.inline-diff-side-label,.inline-diff-source,.inline-diff-anchors"), null);
+    assert.equal(root.querySelector(".inline-diff-before").getAttribute("aria-label"), "Before");
+    assert.equal(root.querySelector(".inline-diff-after").getAttribute("aria-label"), "After");
+    assert.equal(root.matches(".inline-diff-proposal-anchor"), editable);
+    assert.equal(root.hasAttribute("title"), false);
+    if (editable) {
+      root.dispatchEvent(new f.dom.window.Event("focusin", { bubbles: true }));
+      assert.equal(f.calls[0][1].proposal.id, f.note.proposals[0].id);
+    }
+    f.comparison.unload(); f.dom.window.close();
+  }
+});
+test("invisible destination changes keep source evidence without restoring the heading", async () => {
+  const f = setup('{~~<a href="Target.md">Same label</a>~><a href="Other.md">Same label</a>~~}', true);
+  await f.comparison.ready;
+  const details = f.comparison.element.querySelector(".inline-diff-source");
+  assert.equal(details.open, true);
+  assert.equal(details.querySelector("summary").textContent, "Hidden Markdown changes");
+  assert.equal(details.querySelectorAll(".inline-diff-source-entry").length, 1);
+  assert.equal(f.comparison.element.querySelector(".inline-diff-heading"), null);
+  f.comparison.unload(); f.dom.window.close();
+});
+test("keyboard navigation within rendered links is not intercepted by the comparison anchor", async () => {
+  const f = setup('{~~<a href="Target.md">Old label</a>~><a href="Other.md">New label</a>~~}', true);
+  await f.comparison.ready;
+  const link = f.comparison.element.querySelector(".inline-diff-after a");
+  const event = new f.dom.window.KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true });
+  link.dispatchEvent(event);
+  assert.equal(event.defaultPrevented, false);
+  const review = new f.dom.window.KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true });
+  f.comparison.element.dispatchEvent(review);
+  assert.equal(review.defaultPrevented, true);
+  f.comparison.unload(); f.dom.window.close();
+});
+test("a shared container shows source evidence only for its invisible proposal", async () => {
+  const f = setup('A {~~old~>new~~} and {~~<a href="Target.md">Same label</a>~><a href="Other.md">Same label</a>~~}.', true);
+  await f.comparison.ready;
+  const entries = [...f.comparison.element.querySelectorAll(".inline-diff-source-entry")];
+  assert.deepEqual(entries.map(entry => entry.dataset.inlineDiffId), [f.note.proposals[1].id]);
+  assert.equal(f.comparison.element.querySelectorAll(".inline-diff-anchors > .inline-diff-proposal-anchor").length, 2);
+  f.comparison.unload(); f.dom.window.close();
+});
 test("malformed proposals remain visible beside a valid proposal in a shared container", async () => {
   const f = setup("A {++valid++} and {++outer {--nested--}++}.", true);
   await f.comparison.ready;
   assert.equal(f.note.proposals.length, 1);
   assert.match(f.comparison.element.querySelector(".inline-diff-diagnostic-banner").textContent, /Nested/);
   assert.ok(f.comparison.element.textContent.includes("{++outer {--nested--}++}"));
-  assert.equal(f.comparison.element.querySelectorAll(".inline-diff-proposal-anchor").length, 1);
+  assert.equal(f.comparison.element.matches(".inline-diff-proposal-anchor"), true);
   f.comparison.unload(); f.dom.window.close();
 });
 

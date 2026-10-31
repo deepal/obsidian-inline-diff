@@ -4,14 +4,14 @@
   --inline-diff-deletion-text: var(--text-error, #cb2431);
   --inline-diff-deletion-background: rgba(248, 81, 73, .14);
 }
-.inline-diff-review { border: 1px solid var(--background-modifier-border); border-radius: 6px; margin: .7em 0; overflow: hidden; font-size: var(--font-text-size); }
-.inline-diff-heading { display: flex; gap: 6px; align-items: center; padding: 5px 10px; background: var(--background-secondary); color: var(--text-muted); font-size: var(--font-smallest); }
-.inline-diff-proposal-anchor { border: 1px solid var(--background-modifier-border); border-radius: 4px; padding: 0 5px; cursor: default; }
+.inline-diff-review { position: relative; border: 1px solid var(--background-modifier-border); border-radius: 6px; margin: .7em 0; overflow: hidden; font-size: var(--font-text-size); }
+.inline-diff-anchors { position: absolute; top: 4px; right: 4px; z-index: 1; display: flex; gap: 4px; opacity: 0; pointer-events: none; font-size: var(--font-smallest); }
+.inline-diff-review:hover > .inline-diff-anchors, .inline-diff-review:focus-within > .inline-diff-anchors { opacity: 1; pointer-events: auto; }
+.inline-diff-anchors > .inline-diff-proposal-anchor { border: 1px solid var(--background-modifier-border); border-radius: 4px; padding: 0 5px; background: var(--background-primary); color: var(--text-muted); cursor: default; }
 .inline-diff-proposal-anchor:focus-visible { outline: 2px solid var(--interactive-accent); }
 .inline-diff-side { padding: 8px 12px; border-left: 3px solid transparent; }
 .inline-diff-before { border-left-color: var(--inline-diff-deletion-text); }
 .inline-diff-after { border-left-color: var(--inline-diff-addition-text); border-top: 1px solid var(--background-modifier-border); }
-.inline-diff-side-label { color: var(--text-muted); font-size: var(--font-smallest); margin-bottom: 4px; }
 .inline-diff-content > :first-child { margin-top: 0; }
 .inline-diff-content > :last-child { margin-bottom: 0; }
 .inline-diff-content { overflow-x: auto; }

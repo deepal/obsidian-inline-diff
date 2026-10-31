@@ -20,7 +20,7 @@ function textNodes(root: HTMLElement): Text[] {
   const nodes: Text[] = [];
   let node: Node | null;
   while ((node = walker.nextNode())) {
-    if (!node.parentElement?.closest(".inline-diff-source, .inline-diff-side-label")) nodes.push(node as Text);
+    nodes.push(node as Text);
   }
   return nodes;
 }
@@ -43,7 +43,8 @@ function markRange(root: HTMLElement, from: number, to: number, proposal: Propos
   }
 }
 
-function highlight(before: HTMLElement, after: HTMLElement, proposals: Proposal[]): void {
+function highlight(before: HTMLElement, after: HTMLElement, proposals: Proposal[]): Set<string> {
+  const visible = new Set<string>();
   const oldText = before.textContent ?? "";
   const newText = after.textContent ?? "";
   type Highlight = { from: number; to: number; proposal: Proposal | undefined };
@@ -55,6 +56,7 @@ function highlight(before: HTMLElement, after: HTMLElement, proposals: Proposal[
       // Never guess an action target for indistinguishable visual hunks.
       // Numbered source anchors retain exact identity for those proposals.
       const proposal = proposals.length === 1 ? proposals[0] : candidates.length === 1 ? candidates[0] : undefined;
+      for (const candidate of proposal ? [proposal] : candidates) visible.add(candidate.id);
       if (part.removed) oldRanges.push({ from: oldPosition, to: oldPosition + part.value.length, proposal });
       else newRanges.push({ from: newPosition, to: newPosition + part.value.length, proposal });
     }
@@ -77,6 +79,7 @@ function highlight(before: HTMLElement, after: HTMLElement, proposals: Proposal[
     for (const range of merged) markRange(root, range.from, range.to, range.proposal, side);
   };
   apply(before, oldText, oldRanges, "before"); apply(after, newText, newRanges, "after");
+  return visible;
 }
 
 /** Comparison bodies never expose native writing widgets (tasks, bases, etc.). */
@@ -116,18 +119,22 @@ export class Comparison extends Component {
     this.element = root; root.className = "inline-diff-review";
     root.dataset.inlineDiffGroup = group.id;
     applyColours(root, settings);
-    const title = root.createDiv({ cls: "inline-diff-heading" });
+    root.setAttribute("role", "group");
+    root.setAttribute("aria-label", "Proposed changes");
     const file = view?.file ?? null;
-    title.createSpan({ text: group.proposals.length === 1 ? "Proposed change" : `${group.proposals.length} proposed changes` });
     for (const diagnostic of note.diagnostics.filter(diagnostic => diagnostic.from < group.to && diagnostic.to > group.from)) {
       root.createDiv({ cls: "inline-diff-error inline-diff-diagnostic-banner", text: diagnostic.message });
     }
     if (view) {
+      // A single change needs no numbered heading. The comparison itself is
+      // the keyboard anchor; shared containers have floating identity anchors.
+      const anchors = group.proposals.length > 1 ? root.createDiv({ cls: "inline-diff-anchors" }) : null;
       for (const [index, proposal] of group.proposals.entries()) {
-        const anchor = title.createSpan({ cls: "inline-diff-proposal-anchor", text: `${index + 1}` });
+        const anchor = anchors ? anchors.createSpan({ cls: "inline-diff-proposal-anchor", text: `${index + 1}` }) : root;
+        anchor.classList.add("inline-diff-proposal-anchor");
         anchor.tabIndex = 0; anchor.dataset.inlineDiffId = proposal.id;
         anchor.setAttribute("aria-label", `Change ${index + 1}: ${proposal.kind}`);
-        anchor.title = `${proposal.before || "(empty)"} → ${proposal.after || "(empty)"}`;
+        if (anchors) anchor.title = `${proposal.before || "(empty)"} → ${proposal.after || "(empty)"}`;
       }
       const show = (event: Event) => {
         if (!plugin.isActive) return;
@@ -140,16 +147,16 @@ export class Comparison extends Component {
       this.registerDomEvent(root, "focusin", show);
       this.registerDomEvent(root, "keydown", event => {
         if (event.key !== "Enter" && event.key !== " ") return;
-        if (!(event.target as Element).closest(".inline-diff-proposal-anchor,.inline-diff-source-entry")) return;
+        if (!(event.target as Element).matches(".inline-diff-proposal-anchor,.inline-diff-source-entry")) return;
         event.preventDefault(); event.stopPropagation(); show(event); plugin.overlay(doc).focus();
       });
       this.registerDomEvent(root, "pointerleave", () => plugin.scheduleOverlayHide(doc));
     }
     const before = root.createDiv({ cls: "inline-diff-side inline-diff-before" });
-    before.createDiv({ cls: "inline-diff-side-label", text: "Before" });
+    before.setAttribute("role", "group"); before.setAttribute("aria-label", "Before");
     const oldBody = before.createDiv({ cls: "inline-diff-content markdown-rendered" });
     const after = root.createDiv({ cls: "inline-diff-side inline-diff-after" });
-    after.createDiv({ cls: "inline-diff-side-label", text: "After" });
+    after.setAttribute("role", "group"); after.setAttribute("aria-label", "After");
     const newBody = after.createDiv({ cls: "inline-diff-content markdown-rendered" });
     const render = async (body: HTMLElement, markdown: string, decision: "accept" | "reject") => {
       if (!markdown.trim()) { body.createSpan({ cls: "inline-diff-empty", text: "Empty" }); return; }
@@ -188,18 +195,22 @@ export class Comparison extends Component {
     this.ready = Promise.all([render(oldBody, group.before, "reject"), render(newBody, group.after, "accept")]).then(() => {
       if (this.cancelled) return;
       makeReadOnly(oldBody, this); makeReadOnly(newBody, this);
-      highlight(oldBody, newBody, group.proposals);
-      // Source is also essential for invisible edits and structural identity.
-      const details = root.createEl("details", { cls: "inline-diff-source" });
-      details.createEl("summary", { text: "Source comparison" });
-      for (const proposal of group.proposals) {
-        const entry = details.createDiv({ cls: "inline-diff-source-entry" });
-        entry.dataset.inlineDiffId = proposal.id;
-        if (view) entry.tabIndex = 0;
-        entry.createEl("pre", { cls: "inline-diff-deletion", text: proposal.before || "(empty)" });
-        entry.createEl("pre", { cls: "inline-diff-addition", text: proposal.after || "(empty)" });
+      const visible = highlight(oldBody, newBody, group.proposals);
+      const hidden = group.proposals.filter(proposal => !visible.has(proposal.id));
+      // Ordinary edits need only the rendered comparison. Preserve reviewable
+      // evidence when rendering hides a link destination, comment, etc.
+      if (hidden.length) {
+        const details = root.createEl("details", { cls: "inline-diff-source" });
+        details.createEl("summary", { text: "Hidden Markdown changes" });
+        for (const proposal of hidden) {
+          const entry = details.createDiv({ cls: "inline-diff-source-entry" });
+          entry.dataset.inlineDiffId = proposal.id;
+          if (view) entry.tabIndex = 0;
+          entry.createEl("pre", { cls: "inline-diff-deletion", text: proposal.before || "(empty)" });
+          entry.createEl("pre", { cls: "inline-diff-addition", text: proposal.after || "(empty)" });
+        }
+        details.open = true;
       }
-      if (oldBody.textContent === newBody.textContent || (!oldBody.textContent?.trim() && !newBody.textContent?.trim())) details.open = true;
       root.dataset.inlineDiffReady = "true";
     }).catch((error: unknown) => {
       if (!this.cancelled) {

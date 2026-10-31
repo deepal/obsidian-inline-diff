@@ -1,6 +1,6 @@
 # Verification report — Inline Diff 0.1.0
 
-Tested on **30 October 2026**, using disposable application profiles and synthetic vaults. All applicable cases passed, with no skipped tests and no plugin-attributable console errors. Personal-vault installation, mobile acceptance, and publication were outside this run.
+Tested on **31 October 2026**, using disposable application profiles and synthetic vaults. All applicable cases passed, with no skipped tests and no plugin-attributable console errors. Local deployment was verified separately. Mobile acceptance and publication were outside this run.
 
 ## Exact environment
 
@@ -25,10 +25,10 @@ The default theme and all three community themes ran in light and dark palettes,
 | --- | --- |
 | Clean lockfile installation | Passed; npm audit reported zero vulnerabilities |
 | ESLint, normal types, browser-only types | Passed |
-| Unit, component, packaging and deployment tests | **505 passed**, zero failures/skips |
+| Unit, component, packaging and deployment tests | **509 passed**, zero failures/skips |
 | Seeded generated transformations | **10,000 passed**, seed `0x0194af32` |
 | Real-app Markdown matrix | **1,323 passed**, zero failures/errors |
-| Real-app interaction suite | **61 passed**, zero errors |
+| Real-app interaction suite | **71 passed**, zero errors |
 | Production build and metadata checks | Passed |
 | Installed asset hashes and loaded runtime identity | Verified in disposable instances |
 | Source/documentation whitespace checks | Passed |
@@ -36,6 +36,8 @@ The default theme and all three community themes ran in light and dark palettes,
 The [coverage matrix](coverage.md) lists 147 core-syntax features, each exercised as addition, deletion, and replacement in all three views. Independently authored expected Markdown drives native-render comparisons. The editable matrix performs **1,764 individual button resolutions**, checking exact saved content, one-step native undo, and redo. Additional boundary fixtures cover empty documents/arms, adjacency, frontmatter, and document edges.
 
 The interaction suite verifies floating controls without text/table/scroll-layout movement beyond **0.5 CSS pixels**. It covers real keyboard and pointer input, default/custom colours, settings/reset UI, independent table proposals, active native cell editors, duplicate text, identical-content files, unsaved buffers, delayed reads, focus changes, filesystem agent edits, renames, multiple panes, read-only Reading shortcuts/clicks, embeds and native hover previews, disabled tasks, inert Bases, delayed images, folding, narrow panes, horizontal scrolling, zoom, popouts, and repeated unload/reload/open/close cycles.
+
+New Live Preview regressions cover filesystem edits with the remembered cursor inside/outside the changed paragraph, editor/sidebar focus, two panes, direct acceptance without first clicking the editor, and native undo. Deliberate typing still reveals source; blur restores comparisons without collapsing an active native table-cell editor. Compact-layout checks verify the absence of visible titles/side labels and ordinary source sections, accessible side names, independent proposal controls, hidden link-destination evidence, and Enter handling on rendered links.
 
 Exact-byte regressions include BOM, CRLF, mixed endings, and final-newline state. Identical Before/After text with different newline styles is tested through both choices and native keyboard undo/redo.
 
@@ -45,20 +47,22 @@ Measurements are milliseconds on the recorded machine. Input samples measure syn
 
 | Fixture | Initial input | Input p95 | Visible Live Preview comparisons | Reading comparisons |
 | --- | ---: | ---: | ---: | ---: |
-| Approximately 100 KB, 200 proposals | 19.2 | 5.3 | 2 | 5 |
-| Approximately 1 MB, 1,000 proposals | 44.3 | 23.1 | 2 | 3 |
+| Approximately 100 KB, 200 proposals | 28.4 | 7.7 | 3 | 6 |
+| Approximately 1 MB, 1,000 proposals | 42.8 | 22.1 | 2 | 4 |
 
-Ordinary Source hover p95 was **0.4 ms**; Live Preview hover p95 was **0.5 ms**. Both input and hover stayed below the 100 ms target. Offscreen comparisons remained unrendered.
+Ordinary Source hover p95 was **0.4 ms**; Live Preview hover p95 was **1.1 ms**. Both input and hover stayed below the 100 ms target. Offscreen comparisons remained unrendered.
 
 ## Tested artifacts
 
-Each runner copied only `main.js`, `manifest.json`, and `styles.css` into its verified disposable vault. It compared their bytes with the checkout and confirmed loaded identity `inline-diff:0.1.0` in a fresh application instance. Settings were preserved by deployment tests.
+Each runner copied only `main.js`, `manifest.json`, and `styles.css` into its verified disposable vault. It compared their bytes with the checkout and confirmed loaded identity `inline-diff:0.1.0:live-preview-refresh` in a fresh application instance. Settings were preserved by deployment tests.
+
+The local installation matched the same hashes after reloading only Inline Diff. Its loaded build identity and enabled state were verified, with existing note buffers, reply drafts, and plugin settings preserved.
 
 | Asset | SHA-256 |
 | --- | --- |
-| `main.js` | `af9fc463ae358b2bf0fb45d52bc56f407cca13565825f798918d00248a720968` |
+| `main.js` | `72196a0b34e96e1590f7a090be0e3a652d3ea36451d3743d8522b54d29cf0d40` |
 | `manifest.json` | `8bc36e38cd1eaf8a01fbbf6b01372a2067b94e20e244483a023572f35edba15c` |
-| `styles.css` | `c03ac79bfe3fa497e8e986f779a63b8dcc254cb15edef0794755db89dbe41a8e` |
+| `styles.css` | `b28ea91e53a761a7076ebdae09093caa053c2f13b42139c425d33a2b0f685452` |
 
 The complete case names, timestamps, runtime versions, hashes, and measurements are retained in [machine-readable evidence](test-evidence.json).
 
@@ -66,7 +70,9 @@ The complete case names, timestamps, runtime versions, hashes, and measurements 
 
 These are actual app captures from synthetic notes, inspected before retaining them. Source shows distinct foreground/background colours without accidental delimiter strike-through. Live Preview preserves native table/code styling; Reading has no review controls. Toolbar icons remain visible in the tested themes.
 
-![Source with floating controls and exact syntax](images/source.png)
+![Compact text comparison without title, visible labels, or source section](images/compact-review.png)
+
+![Source with exact syntax](images/source.png)
 
 ![Live Preview table and callout comparisons](images/live-preview.png)
 

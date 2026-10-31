@@ -20,12 +20,12 @@ The timeout is {~~10~>30~~} seconds.
 | View | Behaviour |
 | --- | --- |
 | Source | Editable markers with coloured additions/deletions and hover actions. |
-| Live Preview | Stacked, rendered Before/After comparisons with hover actions. Placing the text cursor inside a changed block reveals its source for editing. |
+| Live Preview | Stacked, rendered removals/additions with hover actions. Deliberately placing the text cursor inside a changed block reveals its source while editing. Agent edits render immediately, including while the editor is unfocused. |
 | Reading | Rendered comparisons with no review actions or mutation commands. |
 
-Hover a highlighted change to reveal check/X icon buttons. The toolbar floats over the note without moving text. When a block contains several changes, numbered anchors and source entries identify each proposal independently. Ambiguous visual matches use those explicit anchors rather than guessing a target.
+Hover a highlighted change to reveal check/X icon buttons. The toolbar floats over the note without moving text. Comparisons have no title or visible Before/After labels; the colours and side borders distinguish the alternatives, with accessible labels retained. A source section appears only for proposals whose changes are hidden by rendering, such as an unchanged link label pointing to a new destination.
 
-For keyboard review, focus a numbered anchor and press Enter or Space to reach the icon buttons. Escape returns to the anchor. Commands in the command palette also accept/reject the current change or all changes, and navigate between changes. Assign hotkeys through Obsidian's normal Hotkeys settings.
+For keyboard review, focus the comparison and press Enter or Space to reach the icon buttons. When a block contains several changes, floating numbered anchors appear on hover or keyboard focus for independent decisions, including ambiguous visual matches. Escape returns to the anchor. Commands in the command palette also accept/reject the current change or all changes, and navigate between changes. Assign hotkeys through Obsidian's normal Hotkeys settings.
 
 Every review action uses native editor history. One undo restores the proposal. Changed or stale targets are refused so an action cannot overwrite a newer edit.
 

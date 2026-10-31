@@ -39,7 +39,7 @@ Render readiness checks wait for the native renderer to be idle and the current 
 
 Required theme fixtures: Primary, Minimal, and Blue Topaz. The default theme is tested in light and dark palettes too. Missing prerequisites fail the run rather than silently skipping coverage.
 
-Diagnostic filters are available as `QA_FILTER` for matrix case names and `QA_SECTION` for interaction sections (`themes`, `safety`, `geometry`, `popout`, `performance`). An unfiltered run is required for completion. `QA_ATTACH=1` attaches only to the previously verified disposable session described by `.qa/session.json`; it is intended for local diagnosis.
+Diagnostic filters are available as `QA_FILTER` for matrix case names and `QA_SECTION` for interaction sections (`refresh`, `themes`, `safety`, `geometry`, `popout`, `performance`). The `refresh` regressions cover filesystem edits with remembered carets inside/outside a proposal, editor/sidebar focus, two panes, native typing and blur, simplified comparisons, and invisible link changes. An unfiltered run is required for completion. `QA_ATTACH=1` attaches only to the previously verified disposable session described by `.qa/session.json`; it is intended for local diagnosis.
 
 Generated reports, screenshots, profiles, and logs are ignored. Review selected screenshots before copying them into documentation. A successful browser mock or parser run does not establish compatibility with real Obsidian or another platform.
 

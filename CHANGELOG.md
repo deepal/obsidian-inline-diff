@@ -1,3 +1,9 @@
+## [1.2.1](https://github.com/deepal/obsidian-inline-diff/compare/1.2.0...1.2.1) (2026-10-31)
+
+### Bug Fixes
+
+* update the readme screenshot with pending change controls ([daffa49](https://github.com/deepal/obsidian-inline-diff/commit/daffa495efc557581c08edf072536c9670438887))
+
 ## [1.2.0](https://github.com/deepal/obsidian-inline-diff/compare/1.1.0...1.2.0) (2026-10-31)
 
 ### Features

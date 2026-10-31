@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/deepal/obsidian-inline-diff/compare/1.1.0...1.2.0) (2026-10-31)
+
+### Features
+
+* add pinned review bars above notes ([af56b54](https://github.com/deepal/obsidian-inline-diff/commit/af56b54363dde59f819c6ef0aaba0f4537892533))
+
 ## [1.1.0](https://github.com/deepal/obsidian-inline-diff/compare/1.0.2...1.1.0) (2026-10-31)
 
 ### Features

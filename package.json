@@ -24,7 +24,9 @@
     "test:obsidian": "npm run test:obsidian:matrix && npm run test:obsidian:interactions",
     "test:obsidian:matrix": "node scripts/obsidian-qa.mjs",
     "test:obsidian:interactions": "node scripts/obsidian-interactions.mjs",
-    "check": "npm run lint && npm test && env -u OBSIDIAN_PLUGIN_DIR -u OBSIDIAN_VAULT_DIR npm run build"
+    "check": "npm run lint && npm test && env -u OBSIDIAN_PLUGIN_DIR -u OBSIDIAN_VAULT_DIR npm run build",
+    "release": "node scripts/release.mjs",
+    "release:dry-run": "node scripts/release.mjs --dry-run"
   },
   "dependencies": {
     "@noble/hashes": "2.4.0",
@@ -38,14 +40,22 @@
     "@codemirror/view": "6.43.13",
     "@eslint/js": "^9.39.4",
     "@eslint/json": "0.14.0",
+    "@semantic-release/changelog": "^7.0.0",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^11.0.1",
+    "@semantic-release/github": "^12.0.10",
+    "@semantic-release/release-notes-generator": "^14.1.1",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^24.0.0",
+    "conventional-changelog-conventionalcommits": "^9.3.1",
     "esbuild": "0.25.5",
     "eslint": "^9.39.4",
     "eslint-plugin-obsidianmd": "0.4.2",
     "jsdom": "^27.0.0",
     "obsidian": "1.14.4",
     "playwright": "1.64.1",
+    "semantic-release": "^25.0.9",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.59.1"
   },

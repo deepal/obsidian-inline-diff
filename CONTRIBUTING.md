@@ -43,4 +43,14 @@ Diagnostic filters are available as `QA_FILTER` for matrix case names and `QA_SE
 
 Generated reports, screenshots, profiles, and logs are ignored. Review selected screenshots before copying them into documentation. A successful browser mock or parser run does not establish compatibility with real Obsidian or another platform.
 
-Use Conventional Commits. Keep package, lockfile, manifest, and compatibility metadata synchronized. Publishing is separate from local build/deployment; no release is automatically published by the checks workflow.
+## Automated releases
+
+The CI and release workflow runs lint, unit tests, type checks, and a deployment-disabled production build for pull requests and pushes to `main`. Successful pushes to `main` then run semantic-release. A manual workflow dispatch can retry a release. Pull requests cannot publish.
+
+Use Conventional Commits: `fix` produces a patch, `feat` a minor, and `!` or a `BREAKING CHANGE:` footer a major. Documentation and maintenance commits alone do not create a release. Without an existing release tag, the first qualifying release is `1.0.0`.
+
+Semantic-release generates `CHANGELOG.md`, synchronizes package/lock/manifest versions through `scripts/prepare-release.mjs`, and adds the compatibility entry while preserving history. It commits that metadata with `[skip ci]`, creates a bare version tag matching the manifest, and publishes `main.js`, `manifest.json`, and `styles.css` on GitHub. Publication uses the workflow's built-in `GITHUB_TOKEN`; npm package publication is disabled. Do not manually bump generated versions or edit the generated changelog.
+
+The release job signs asset attestations, downloads the published files, compares them with the prepared build, and verifies their provenance against this repository's release workflow. Release outputs authorize attestation only after semantic-release reports a completed publication.
+
+Preview a release with `npm run release:dry-run`. Dry runs still verify Git/GitHub access, but do not prepare files, tag, commit, or publish. `npm test` includes isolated local-Git lifecycle tests for initial/patch/minor/major versions, no-op and dry runs, build failures, metadata preservation, notes generation, and release-output guards.

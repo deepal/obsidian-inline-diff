@@ -1,6 +1,6 @@
 # Inline Diff
 
-Review proposed changes in an Obsidian note, with rendered before and after comparisons and individual accept/reject actions.
+Review an agent's proposed changes to an Obsidian note, then accept or reject each edit.
 
 ![Inline Diff showing a proposed paragraph edit with accept and reject controls](docs/images/readme-review.png)
 
@@ -73,6 +73,10 @@ The runner launches a separate app profile, verifies its disposable-vault identi
 Use `OBSIDIAN_EXECUTABLE` to select a different app binary. The default is the standard macOS application location. Run the matrix or interaction suite separately with `npm run test:obsidian:matrix` and `npm run test:obsidian:interactions`. Diagnostic output and screenshots go into ignored `.qa/` files.
 
 See [testing details](CONTRIBUTING.md), the [coverage matrix](docs/coverage.md), and the [verification report](docs/test-report.md).
+
+## Releases
+
+Successful pushes to `main` run semantic-release after CI checks pass. Conventional Commits determine the version, update the changelog and Obsidian metadata, and publish `main.js`, `manifest.json`, and `styles.css` with verified attestations. Release tags match the manifest version without a `v` prefix. See the [release workflow](CONTRIBUTING.md#automated-releases) for commit rules and dry runs.
 
 ## Compatibility and privacy
 

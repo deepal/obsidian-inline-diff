@@ -18,7 +18,7 @@ function isCellOwner(value: unknown): value is CellOwner {
 export default class InlineDiffPlugin extends Plugin {
   settings: DiffSettings = { ...defaults };
   settingsVersion = 0;
-  readonly buildIdentity = "inline-diff:0.1.0:live-preview-refresh";
+  readonly buildIdentity = `inline-diff:${this.manifest.version}:live-preview-refresh`;
   private overlays = new Map<Document, ReviewOverlay>();
   private reading!: ReadingCoordinator;
   private formats!: FormatPreserver;

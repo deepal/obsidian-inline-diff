@@ -3,15 +3,15 @@ import { test } from "node:test";
 import { parseNote } from "../src/model.ts";
 import { dom, importHostModule } from "./helpers.mjs";
 
-const { PendingReviewStatus } = await importHostModule("src/status.ts");
+const { ReviewBar, ReviewBarCoordinator } = await importHostModule("src/status.ts");
 
 function setup(t) {
-  const document = dom(), element = document.window.document.body.createDiv();
+  const document = dom(), host = document.window.document.body.createDiv({ cls: "view-content" });
   let current = null, reads = 0;
-  const calls = [], status = new PendingReviewStatus(element, () => { reads++; return current; }, (...args) => calls.push(args));
+  const calls = [], status = new ReviewBar(host, () => { reads++; return current; }, (...args) => calls.push(args));
   status.load();
   t.after(() => { status.unload(); document.window.close(); });
-  return { element, status, calls, document, set(value) { current = value; }, reads: () => reads };
+  return { element: status.element, host, status, calls, document, set(value) { current = value; }, reads: () => reads };
 }
 function snapshot(source = "A {~~old~>new~~} sentence.", overrides = {}) {
   return { view: {}, file: { path: "Review.md" }, source, pending: parseNote(source).proposals.length, editable: true, busy: false, ...overrides };
@@ -47,7 +47,7 @@ test("Reading removes action elements and listeners rather than hiding them", t 
   const oldButtons = [...f.element.querySelectorAll("button")];
   f.set({ ...current, editable: false }); f.status.refresh();
   assert.equal(f.element.hidden, false);
-  assert.equal(f.element.querySelectorAll("button,.inline-diff-status-actions").length, 0);
+  assert.equal(f.element.querySelectorAll("button,.inline-diff-review-bar-actions").length, 0);
   for (const button of oldButtons) button.click();
   assert.deepEqual(f.calls, []);
   f.set(current); f.status.refresh();
@@ -82,14 +82,60 @@ test("an empty or closed note removes previous mutation handlers", t => {
   assert.deepEqual(f.calls, []);
 });
 
-test("status updates coalesce and unload cancels scheduled reads and action handlers", async t => {
-  const f = setup(t); f.set(snapshot());
-  for (let i = 0; i < 20; i++) f.status.schedule();
+test("coordinator coalesces updates and cancels work and handlers on unload", async t => {
+  const document = dom(), host = document.window.document.body.createDiv({ cls: "view-content" });
+  const view = { contentEl: host, file: { path: "Review.md" } };
+  let reads = 0;
+  const calls = [], current = snapshot(undefined, { view, file: view.file });
+  const coordinator = new ReviewBarCoordinator(document.window, () => [view], () => { reads++; return current; }, (...args) => calls.push(args), () => {});
+  coordinator.load(); t.after(() => { coordinator.unload(); document.window.close(); });
+  for (let i = 0; i < 20; i++) coordinator.schedule();
   await new Promise(resolve => setTimeout(resolve, 10));
-  assert.equal(f.reads(), 1);
-  const button = f.element.querySelector("button");
-  f.status.schedule(); f.status.unload(); button.click();
+  assert.equal(reads, 1);
+  const button = host.querySelector("button");
+  coordinator.schedule(); coordinator.unload(); button.click();
   await new Promise(resolve => setTimeout(resolve, 10));
-  assert.equal(f.reads(), 1); assert.deepEqual(f.calls, []);
-  assert.equal(f.element.children.length, 0);
+  assert.equal(reads, 1); assert.deepEqual(calls, []);
+  assert.equal(host.querySelector(".inline-diff-review-bar"), null);
+  assert.equal(host.classList.contains("inline-diff-has-review-bar"), false);
+});
+
+test("review bar precedes native content and owns only its layout class", t => {
+  const f = setup(t), native = f.host.createDiv({ cls: "markdown-source-view" });
+  f.set(snapshot()); f.status.refresh();
+  assert.equal(f.host.firstElementChild, f.element);
+  assert.equal(native.parentElement, f.host);
+  assert.ok(f.host.classList.contains("inline-diff-has-review-bar"));
+  f.set(snapshot("No proposals.")); f.status.refresh();
+  assert.equal(f.host.classList.contains("inline-diff-has-review-bar"), false);
+  f.status.unload(); assert.equal(native.parentElement, f.host);
+});
+
+test("coordinator binds separate note panes and removes closed views without duplicate bars", t => {
+  const document = dom(), doc = document.window.document;
+  const views = ["One.md", "Two.md"].map(path => ({ contentEl: doc.body.createDiv({ cls: "view-content" }), file: { path } }));
+  const calls = [], coordinator = new ReviewBarCoordinator(document.window, () => views, view => snapshot(undefined, { view, file: view.file }), (...args) => calls.push(args), () => {});
+  coordinator.load(); t.after(() => { coordinator.unload(); document.window.close(); });
+  coordinator.refresh(); coordinator.refresh();
+  assert.equal(doc.querySelectorAll(".inline-diff-review-bar").length, 2);
+  views[1].contentEl.querySelector('[data-decision="accept"]').click();
+  assert.equal(calls[0][0].view, views[1]);
+  const closed = views.pop(), button = closed.contentEl.querySelector("button");
+  coordinator.refresh(); button.click();
+  assert.equal(calls.length, 1);
+  assert.equal(closed.contentEl.querySelector(".inline-diff-review-bar"), null);
+});
+
+test("coordinator recreates a bar in the owning document after pane migration", t => {
+  const main = dom(), popout = dom();
+  const oldHost = main.window.document.body.createDiv({ cls: "view-content" });
+  const view = { contentEl: oldHost, file: { path: "Review.md" } };
+  const coordinator = new ReviewBarCoordinator(main.window, () => [view], () => snapshot(undefined, { view, file: view.file }), () => {}, () => {});
+  coordinator.load(); t.after(() => { coordinator.unload(); main.window.close(); popout.window.close(); });
+  coordinator.refresh();
+  view.contentEl = popout.window.document.body.createDiv({ cls: "view-content" });
+  coordinator.refresh();
+  assert.equal(oldHost.querySelector(".inline-diff-review-bar"), null);
+  assert.equal(view.contentEl.querySelectorAll(".inline-diff-review-bar").length, 1);
+  assert.equal(view.contentEl.querySelector("button").ownerDocument, popout.window.document);
 });

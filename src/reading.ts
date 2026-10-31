@@ -55,7 +55,7 @@ export class ReadingCoordinator extends Component {
       });
     };
     child.onunload = () => {
-      this.plugin.scheduleReviewStatus();
+      this.plugin.scheduleReviewBars();
       if (frame !== null) element.win.cancelAnimationFrame(frame);
       if (!state) return;
       state.sections.delete(element);
@@ -80,7 +80,7 @@ export class ReadingCoordinator extends Component {
   private draw(state: ReadingState): void {
     // External reloads update Reading data after vault.modify, without emitting
     // editor-change. Count the refreshed source once the native renderer runs.
-    this.plugin.scheduleReviewStatus();
+    this.plugin.scheduleReviewBars();
     if (this.stopped || !state.root.isConnected) { this.dispose(state); return; }
     const sections = [...state.sections.values()].filter(section => section.element.isConnected).flatMap(section => {
       const info = section.info();

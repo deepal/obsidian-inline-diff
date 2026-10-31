@@ -21,12 +21,13 @@ async function ready(mode, count = 2) {
   }, { mode, count });
 }
 async function contents() { return page.evaluate(() => app.workspace.activeLeaf.view.getViewData()); }
-async function statusReady(pending, editable = true) {
+async function barReady(pending, editable = true) {
   await page.waitForFunction(({ pending, editable }) => {
-    const status = document.querySelector(".inline-diff-status");
-    if (!status || status.hidden !== (pending === 0)) return false;
+    const status = app.workspace.activeLeaf.view.contentEl?.querySelector(":scope > .inline-diff-review-bar");
+    if (!status) return pending === 0;
+    if (status.hidden !== (pending === 0)) return false;
     const text = pending ? `${pending} pending ${pending === 1 ? "change" : "changes"}` : "";
-    return status.querySelector(".inline-diff-status-count").textContent === text && status.querySelectorAll("button").length === (pending && editable ? 2 : 0);
+    return status.querySelector(".inline-diff-review-bar-count").textContent === text && status.querySelectorAll("button").length === (pending && editable ? 2 : 0);
   }, { pending, editable });
 }
 async function bounds(mode) {
@@ -79,6 +80,41 @@ async function proseGeometry(mode, contentWidth) {
     throw Error("Prose geometry did not settle.");
   }, { mode, contentWidth });
 }
+async function calloutGeometry(mode, side, width) {
+  return page.evaluate(async ({ mode, side, width }) => {
+    await document.fonts.ready;
+    const scope = app.workspace.activeLeaf.view.contentEl.querySelector(mode === "reading" ? ".markdown-reading-view" : ".markdown-source-view");
+    const root = scope.querySelector(side ? `.inline-diff-${side} .callout` : ".callout");
+    if (width !== undefined) root.style.width = `${width}px`;
+    const measure = () => {
+      const origin = root.getBoundingClientRect();
+      return { width: origin.width, nodes: [root, ...root.querySelectorAll(".callout,.callout-title,.callout-content,p,pre,code,li,blockquote")].map(element => {
+        const box = element.getBoundingClientRect(), style = getComputedStyle(element), visible = box.width > 0 && box.height > 0;
+        return { tag: element.tagName, visible, whiteSpace: style.whiteSpace, lineHeight: style.lineHeight, rect: visible ? [box.x - origin.x, box.y - origin.y, box.width, box.height] : [0, 0, 0, 0] };
+      }) };
+    };
+    let previous = "", stable = 0;
+    const deadline = performance.now() + 10000;
+    while (performance.now() < deadline) {
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      const current = measure(), serialized = JSON.stringify(current);
+      stable = serialized === previous && document.fonts.status === "loaded" ? stable + 1 : 0;
+      if (stable >= 12) return current;
+      previous = serialized;
+    }
+    throw Error("Native callout geometry did not settle.");
+  }, { mode, side, width });
+}
+function equalCallouts(actual, expected) {
+  assert.equal(actual.nodes.length, expected.nodes.length, "native callout structure");
+  for (const [index, node] of actual.nodes.entries()) {
+    const native = expected.nodes[index];
+    assert.equal(node.tag, native.tag); assert.equal(node.visible, native.visible);
+    assert.equal(node.whiteSpace, native.whiteSpace, `native whitespace on ${node.tag}`);
+    assert.equal(node.lineHeight, native.lineHeight, `native line height on ${node.tag}`);
+    for (let coordinate = 0; coordinate < 4; coordinate++) assert.ok(Math.abs(node.rect[coordinate] - native.rect[coordinate]) <= .5, `native callout bounds ${index}/${node.tag}: ${JSON.stringify(node.rect)} vs ${JSON.stringify(native.rect)}`);
+  }
+}
 function equalBounds(before, after) {
   assert.equal(before.rects.length, after.rects.length);
   for (const [index, rect] of before.rects.entries()) for (let coordinate = 0; coordinate < 4; coordinate++) assert.ok(Math.abs(rect[coordinate] - after.rects[index][coordinate]) <= .5, `hover moved rectangle ${index}: ${JSON.stringify(rect)} -> ${JSON.stringify(after.rects[index])}`);
@@ -127,7 +163,7 @@ async function blockToolbarPosition(block) {
   const geometry = await block.evaluate(element => {
     const toolbar = element.ownerDocument.querySelector(".inline-diff-toolbar");
     const rect = element.getBoundingClientRect(), box = toolbar.getBoundingClientRect();
-    const pane = app.workspace.activeLeaf.view.containerEl.getBoundingClientRect();
+    const pane = app.workspace.activeLeaf.view.contentEl.querySelector(".cm-scroller").getBoundingClientRect();
     const win = element.ownerDocument.defaultView;
     return { left: box.left, top: box.top,
       expectedLeft: Math.max(pane.left + 4, Math.min(rect.right - box.width, pane.right - box.width - 4, win.innerWidth - box.width - 4)),
@@ -145,51 +181,51 @@ try {
   measurements.frontmatter = await page.evaluate(() => ({ unclosed: inlineDiffQa.frontmatterInfo("---\nBody.\n").exists, closed: inlineDiffQa.frontmatterInfo("---\ntitle: Test\n---\nBody.\n").exists }));
   if (matches("status")) {
     for (const mode of ["source", "live", "reading"]) await check(`${mode} status counts valid proposals instead of blocks or words`, async () => {
-      await setFixture(page, "Intro.\n\nNo pending changes.\n", mode); await statusReady(0);
-      await setFixture(page, "Intro.\n\n{~~Many old words here.~>Several new words over here.~~}\n\nTail.\n", mode); await statusReady(1, mode !== "reading");
-      await setFixture(page, source, mode); await statusReady(3, mode !== "reading");
+      await setFixture(page, "Intro.\n\nNo pending changes.\n", mode); await barReady(0);
+      await setFixture(page, "Intro.\n\n{~~Many old words here.~>Several new words over here.~~}\n\nTail.\n", mode); await barReady(1, mode !== "reading");
+      await setFixture(page, source, mode); await barReady(3, mode !== "reading");
       await page.screenshot({ path: path.resolve(".qa", `status-${mode}.png`) });
       const literals = '---\ntitle: "{++literal++}"\n---\nA {++valid++} proposal.\n\n`{++code++}`\n\n{++outer {--nested--}++}\n\nTail.\n';
-      await setFixture(page, literals, mode); await statusReady(1, mode !== "reading");
-      await setFixture(page, literalFixtures.join("\n\n"), mode); await statusReady(0);
+      await setFixture(page, literals, mode); await barReady(1, mode !== "reading");
+      await setFixture(page, literalFixtures.join("\n\n"), mode); await barReady(0);
     });
     await check("native typing and undo/redo refresh the status before saving or blurring", async () => {
       const text = "Intro.\n\nA {++first++} proposal.\n\nTail.\n";
-      await setFixture(page, text, "source"); await statusReady(1);
+      await setFixture(page, text, "source"); await barReady(1);
       await page.evaluate(() => { const e = app.workspace.activeLeaf.view.editor; e.focus(); e.setCursor(e.lastLine(), 0); });
-      await page.keyboard.type("A {++second++} proposal."); await statusReady(2);
-      await page.keyboard.press("Meta+Backspace"); await statusReady(1);
-      await page.keyboard.press("Meta+z"); await statusReady(2);
-      await page.keyboard.press("Meta+Shift+z"); await statusReady(1);
+      await page.keyboard.type("A {++second++} proposal."); await barReady(2);
+      await page.keyboard.press("Meta+Backspace"); await barReady(1);
+      await page.keyboard.press("Meta+z"); await barReady(2);
+      await page.keyboard.press("Meta+Shift+z"); await barReady(1);
     });
     for (const mode of ["live", "reading"]) await check(`${mode} external agent edits refresh status while editor is unfocused`, async () => {
-      await setFixture(page, "Intro.\n\nNo pending changes.\n\nTail.\n", mode); await statusReady(0);
+      await setFixture(page, "Intro.\n\nNo pending changes.\n\nTail.\n", mode); await barReady(0);
       await page.evaluate(() => { const input = document.createElement("input"); input.id = "qa-status-focus"; document.body.append(input); input.focus(); });
       try {
         await fs.writeFile(path.join(session.vault, "Review.md"), source);
-        await statusReady(3, mode !== "reading");
+        await barReady(3, mode !== "reading");
         assert.equal(await page.evaluate(() => document.activeElement.id), "qa-status-focus");
-        await fs.writeFile(path.join(session.vault, "Review.md"), ""); await statusReady(0);
+        await fs.writeFile(path.join(session.vault, "Review.md"), ""); await barReady(0);
       } finally { await page.evaluate(() => document.querySelector("#qa-status-focus").remove()); }
     });
     for (const mode of ["source", "live"]) for (const decision of ["accept", "reject"]) await check(`${mode} status ${decision} all saves exactly and uses one native undo step`, async () => {
-      await setFixture(page, source, mode); await statusReady(3);
-      const button = page.locator(`.inline-diff-status [data-decision=${decision}]`);
+      await setFixture(page, source, mode); await barReady(3);
+      const button = page.locator(`.inline-diff-review-bar [data-decision=${decision}]`);
       if (mode === "source") { await button.focus(); await page.keyboard.press(decision === "accept" ? "Enter" : "Space"); }
       else await button.click();
       await page.evaluate(async () => { await app.plugins.plugins["inline-diff"].lastResolution; await inlineDiffQa.save(app.workspace.activeLeaf.view); });
       const expected = source.replace("{~~old~>new~~}", decision === "accept" ? "new" : "old").replace("{~~old~>second~~}", decision === "accept" ? "second" : "old").replace("{++new++}", decision === "accept" ? "new" : "");
-      assert.equal(await contents(), expected); assert.equal(await fs.readFile(path.join(session.vault, "Review.md"), "utf8"), expected); await statusReady(0);
-      await page.keyboard.press("Meta+z"); assert.equal(await contents(), source); await statusReady(3);
-      await page.keyboard.press("Meta+Shift+z"); assert.equal(await contents(), expected); await statusReady(0);
+      assert.equal(await contents(), expected); assert.equal(await fs.readFile(path.join(session.vault, "Review.md"), "utf8"), expected); await barReady(0);
+      await page.keyboard.press("Meta+z"); assert.equal(await contents(), source); await barReady(3);
+      await page.keyboard.press("Meta+Shift+z"); assert.equal(await contents(), expected); await barReady(0);
     });
     await check("individual block resolution decrements the status count", async () => {
-      await setFixture(page, source, "live"); await ready("live"); await statusReady(3); await hoverFirst("live");
+      await setFixture(page, source, "live"); await ready("live"); await barReady(3); await hoverFirst("live");
       await page.locator(".inline-diff-toolbar [data-decision=accept]").click();
-      await page.evaluate(() => app.plugins.plugins["inline-diff"].lastResolution); await statusReady(2);
+      await page.evaluate(() => app.plugins.plugins["inline-diff"].lastResolution); await barReady(2);
     });
     await check("status actions disable immediately and reject edits arriving during their disk check", async () => {
-      await setFixture(page, source, "source"); await statusReady(3);
+      await setFixture(page, source, "source"); await barReady(3);
       await page.evaluate(() => {
         const adapter = app.vault.adapter, original = adapter.readBinary;
         globalThis.qaStatusGate = { calls: 0, original, release: null };
@@ -199,43 +235,43 @@ try {
         };
       });
       try {
-        await page.locator(".inline-diff-status [data-decision=accept]").click();
-        assert.equal(await page.locator(".inline-diff-status button:disabled").count(), 2);
+        await page.locator(".inline-diff-review-bar [data-decision=accept]").click();
+        assert.equal(await page.locator(".inline-diff-review-bar button:disabled").count(), 2);
         const result = await page.evaluate(async source => {
-          document.querySelector('.inline-diff-status [data-decision="reject"]').click();
+          document.querySelector('.inline-diff-review-bar [data-decision="reject"]').click();
           const e = app.workspace.activeLeaf.view.editor; e.replaceRange("Unsaved prefix.\n", { line: 0, ch: 0 });
           const before = e.getValue(); qaStatusGate.release(new TextEncoder().encode(source).buffer);
           await app.plugins.plugins["inline-diff"].lastResolution;
           return { before, after: e.getValue(), calls: qaStatusGate.calls };
         }, source);
-        assert.equal(result.after, result.before); assert.equal(result.calls, 1); await statusReady(3);
-        assert.equal(await page.locator(".inline-diff-status button:disabled").count(), 0);
+        assert.equal(result.after, result.before); assert.equal(result.calls, 1); await barReady(3);
+        assert.equal(await page.locator(".inline-diff-review-bar button:disabled").count(), 0);
       } finally { await page.evaluate(() => { app.vault.adapter.readBinary = qaStatusGate.original; delete globalThis.qaStatusGate; }); }
     });
     await check("switching to Reading during a status disk check refuses the write", async () => {
-      await setFixture(page, source, "source"); await statusReady(3);
+      await setFixture(page, source, "source"); await barReady(3);
       const result = await page.evaluate(async source => {
-        const plugin = app.plugins.plugins["inline-diff"], target = plugin.reviewStatus.snapshot, adapter = app.vault.adapter, original = adapter.readBinary;
+        const plugin = app.plugins.plugins["inline-diff"], target = plugin.readReviewSnapshot(app.workspace.activeLeaf.view), adapter = app.vault.adapter, original = adapter.readBinary;
         let release, armed = true;
         adapter.readBinary = function(file) { if (armed && file === "Review.md") { armed = false; return new Promise(resolve => { release = resolve; }); } return original.call(this, file); };
         try {
-          document.querySelector('.inline-diff-status [data-decision="accept"]').click();
+          document.querySelector('.inline-diff-review-bar [data-decision="accept"]').click();
           await app.workspace.activeLeaf.setViewState({ type: "markdown", state: { file: "Review.md", mode: "preview" } });
           release(new TextEncoder().encode(source).buffer); await plugin.lastResolution;
           return target.view.getViewData();
         } finally { adapter.readBinary = original; }
       }, source);
-      assert.equal(result, source); await statusReady(3, false);
+      assert.equal(result, source); await barReady(3, false);
       assert.equal(await fs.readFile(path.join(session.vault, "Review.md"), "utf8"), source);
     });
     await check("a pending status resolution keeps its captured pane without stealing focus", async () => {
-      await setFixture(page, source, "source"); await statusReady(3);
+      await setFixture(page, source, "source"); await barReady(3);
       const result = await page.evaluate(async source => {
-        const plugin = app.plugins.plugins["inline-diff"], target = plugin.reviewStatus.snapshot, adapter = app.vault.adapter, original = adapter.readBinary;
+        const plugin = app.plugins.plugins["inline-diff"], target = plugin.readReviewSnapshot(app.workspace.activeLeaf.view), adapter = app.vault.adapter, original = adapter.readBinary;
         let release, other, armed = true;
         adapter.readBinary = function(file) { if (armed && file === "Review.md") { armed = false; return new Promise(resolve => { release = resolve; }); } return original.call(this, file); };
         try {
-          document.querySelector('.inline-diff-status [data-decision="reject"]').click();
+          document.querySelector('.inline-diff-review-bar [data-decision="reject"]').click();
           other = app.workspace.getLeaf("split"); await other.openFile(app.vault.getAbstractFileByPath("Other.md")); app.workspace.setActiveLeaf(other, { focus: true });
           release(new TextEncoder().encode(source).buffer); await plugin.lastResolution;
           return { focused: app.workspace.activeLeaf === other, current: target.view.editor.getValue(), other: other.view.getViewData() };
@@ -250,63 +286,65 @@ try {
       assert.equal(result.other, await fs.readFile(path.join(session.vault, "Other.md"), "utf8"));
     });
     await check("read-only editor state exposes only the pending count", async () => {
-      await setFixture(page, source, "source"); await statusReady(3);
+      await setFixture(page, source, "source"); await barReady(3);
       await page.evaluate(() => inlineDiffQa.makeReadOnly(app.workspace.activeLeaf.view));
-      await statusReady(3, false); assert.equal(await execute("accept-all-changes"), false);
+      await barReady(3, false); assert.equal(await execute("accept-all-changes"), false);
       assert.equal(await contents(), source);
     });
     await check("stale bulk snapshots cannot substitute shifted duplicate text", async () => {
-      await setFixture(page, source, "source"); await statusReady(3);
+      await setFixture(page, source, "source"); await barReady(3);
       const result = await page.evaluate(async () => {
-        const plugin = app.plugins.plugins["inline-diff"], target = plugin.reviewStatus.snapshot;
+        const plugin = app.plugins.plugins["inline-diff"], target = plugin.readReviewSnapshot(app.workspace.activeLeaf.view);
         target.view.editor.replaceRange("Agent prefix.\n", { line: 0, ch: 0 });
         const before = target.view.editor.getValue(); plugin.resolveAll(target, "accept"); await plugin.lastResolution;
         return { before, after: target.view.editor.getValue() };
       });
-      assert.equal(result.after, result.before); await statusReady(3);
+      assert.equal(result.after, result.before); await barReady(3);
     });
     await check("status bulk actions preserve unsaved text outside proposals", async () => {
-      await setFixture(page, source, "source"); await statusReady(3);
+      await setFixture(page, source, "source"); await barReady(3);
       await page.evaluate(() => app.workspace.activeLeaf.view.editor.replaceRange("Unsaved prefix.\n", { line: 0, ch: 0 }));
-      await statusReady(3);
-      await page.locator('.inline-diff-status [data-decision="reject"]').click();
-      await page.evaluate(() => app.plugins.plugins["inline-diff"].lastResolution); await statusReady(0);
+      await barReady(3);
+      await page.locator('.inline-diff-review-bar [data-decision="reject"]').click();
+      await page.evaluate(() => app.plugins.plugins["inline-diff"].lastResolution); await barReady(0);
       assert.equal(await contents(), "Unsaved prefix.\n" + source.replace("{~~old~>new~~}", "old").replace("{~~old~>second~~}", "old").replace("{++new++}", ""));
     });
     await check("Reading status has no action handlers alongside the same note in an editable pane", async () => {
-      await setFixture(page, source, "source"); await statusReady(3);
+      await setFixture(page, source, "source"); await barReady(3);
       await page.evaluate(async () => {
         globalThis.qaStatusOwner = app.workspace.activeLeaf;
-        globalThis.qaStatusOldButton = document.querySelector('.inline-diff-status [data-decision="accept"]');
         globalThis.qaStatusReader = app.workspace.getLeaf("split");
         await qaStatusReader.openFile(app.vault.getAbstractFileByPath("Review.md"));
+        app.plugins.plugins["inline-diff"].reviewBars.refresh();
+        globalThis.qaStatusOldButton = qaStatusReader.view.contentEl.querySelector('.inline-diff-review-bar [data-decision="accept"]');
+        qaStatusReader.view.contentEl.dataset.qaReader = "true";
         await qaStatusReader.setViewState({ type: "markdown", state: { file: "Review.md", mode: "preview" } });
         app.workspace.setActiveLeaf(qaStatusReader, { focus: true });
       });
       try {
-        await statusReady(3, false);
+        await barReady(3, false);
         await page.evaluate(() => qaStatusOldButton.click());
-        await page.locator(".inline-diff-status").hover(); await page.locator(".inline-diff-status-count").click();
+        await page.locator('[data-qa-reader] .inline-diff-review-bar').hover(); await page.locator('[data-qa-reader] .inline-diff-review-bar-count').click();
         assert.equal(await execute("accept-all-changes"), false);
         assert.equal(await execute("reject-all-changes"), false);
         assert.equal(await contents(), source);
         assert.equal(await page.evaluate(() => qaStatusOwner.view.editor.getValue()), source);
         assert.equal(await fs.readFile(path.join(session.vault, "Review.md"), "utf8"), source);
-      } finally { await page.evaluate(() => { qaStatusReader.detach(); app.workspace.setActiveLeaf(qaStatusOwner, { focus: true }); delete globalThis.qaStatusOwner; delete globalThis.qaStatusReader; delete globalThis.qaStatusOldButton; }); }
-      await statusReady(3);
+      } finally { await page.evaluate(() => { delete qaStatusReader.view.contentEl.dataset.qaReader; qaStatusReader.detach(); app.workspace.setActiveLeaf(qaStatusOwner, { focus: true }); delete globalThis.qaStatusOwner; delete globalThis.qaStatusReader; delete globalThis.qaStatusOldButton; }); }
+      await barReady(3);
     });
-    await check("status follows main-window note selection and hides for non-Markdown panes", async () => {
-      await setFixture(page, source, "source"); await statusReady(3);
+    await check("review bar follows its pane note selection and hides for non-Markdown panes", async () => {
+      await setFixture(page, source, "source"); await barReady(3);
       await page.evaluate(async () => {
         const leaf = app.workspace.activeLeaf;
         await leaf.openFile(app.vault.getAbstractFileByPath("Other.md"));
       });
-      await statusReady(0);
-      await page.evaluate(async () => app.workspace.activeLeaf.setViewState({ type: "empty", state: {} })); await statusReady(0);
-      await setFixture(page, source, "source"); await statusReady(3);
+      await barReady(0);
+      await page.evaluate(async () => app.workspace.activeLeaf.setViewState({ type: "empty", state: {} })); await barReady(0);
+      await setFixture(page, source, "source"); await barReady(3);
     });
-    await check("popout selection cannot retarget the main-window status action", async () => {
-      await setFixture(page, source, "source"); await statusReady(3);
+    await check("main and popout bars keep separate note targets", async () => {
+      await setFixture(page, source, "source"); await barReady(3);
       const popoutText = "Popout {++pending++} change.\n";
       await page.evaluate(async text => {
         globalThis.qaStatusMainLeaf = app.workspace.activeLeaf;
@@ -317,32 +355,194 @@ try {
         app.workspace.setActiveLeaf(qaStatusPopoutLeaf, { focus: true });
       }, popoutText);
       try {
-        await statusReady(3);
-        assert.equal(await page.evaluate(() => qaStatusPopoutLeaf.view.containerEl.ownerDocument.querySelectorAll(".inline-diff-status").length), 0);
-        await page.locator('.inline-diff-status [data-decision="accept"]').click();
-        await page.evaluate(() => app.plugins.plugins["inline-diff"].lastResolution); await statusReady(0);
+        await barReady(1);
+        assert.equal(await page.evaluate(() => qaStatusPopoutLeaf.view.contentEl.querySelectorAll(".inline-diff-review-bar").length), 1);
+        await page.locator('.inline-diff-review-bar [data-decision="accept"]').click();
+        await page.evaluate(() => app.plugins.plugins["inline-diff"].lastResolution);
+        await page.waitForFunction(() => qaStatusMainLeaf.view.contentEl.querySelector(".inline-diff-review-bar").hidden);
         assert.equal(await page.evaluate(() => qaStatusPopoutLeaf.view.editor.getValue()), popoutText);
         assert.equal(await fs.readFile(path.join(session.vault, "Status popout.md"), "utf8"), popoutText);
       } finally { await page.evaluate(() => { qaStatusPopoutLeaf.detach(); app.workspace.setActiveLeaf(qaStatusMainLeaf, { focus: true }); delete globalThis.qaStatusMainLeaf; delete globalThis.qaStatusPopoutLeaf; }); }
     });
     await check("status counts the full note while a native table-cell editor is active", async () => {
-      await setFixture(page, source, "live"); await ready("live"); await statusReady(3);
+      await setFixture(page, source, "live"); await ready("live"); await barReady(3);
       await page.evaluate(() => { const e = app.workspace.activeLeaf.view.editor; e.setCursor(e.offsetToPos(e.getValue().indexOf("old"))); });
       await page.locator(".markdown-source-view .cm-table-widget tbody tr").first().locator("td").nth(1).click();
-      await page.waitForSelector(".cm-table-widget .cm-editor"); await statusReady(3);
+      await page.waitForSelector(".cm-table-widget .cm-editor"); await barReady(3);
       await page.evaluate(async () => { await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); await inlineDiffQa.save(app.workspace.activeLeaf.view); });
-      await page.locator('.inline-diff-status [data-decision="accept"]').click();
-      await page.evaluate(() => app.plugins.plugins["inline-diff"].lastResolution); await statusReady(0);
-      await page.keyboard.press("Meta+z"); await statusReady(3);
+      await page.locator('.inline-diff-review-bar [data-decision="accept"]').click();
+      await page.evaluate(() => app.plugins.plugins["inline-diff"].lastResolution); await barReady(0);
+      await page.keyboard.press("Meta+z"); await barReady(3);
     });
     await check("renaming and deleting the selected note refresh the status", async () => {
-      await setFixture(page, source, "source"); await statusReady(3);
-      await page.evaluate(async () => app.fileManager.renameFile(app.vault.getAbstractFileByPath("Review.md"), "Status renamed.md")); await statusReady(3);
-      await page.evaluate(async () => app.fileManager.renameFile(app.vault.getAbstractFileByPath("Status renamed.md"), "Review.md")); await statusReady(3);
-      await page.evaluate(async () => { await app.vault.delete(app.vault.getAbstractFileByPath("Review.md")); }); await statusReady(0);
+      await setFixture(page, source, "source"); await barReady(3);
+      await page.evaluate(async () => app.fileManager.renameFile(app.vault.getAbstractFileByPath("Review.md"), "Status renamed.md")); await barReady(3);
+      await page.evaluate(async () => app.fileManager.renameFile(app.vault.getAbstractFileByPath("Status renamed.md"), "Review.md")); await barReady(3);
+      await page.evaluate(async () => { await app.vault.delete(app.vault.getAbstractFileByPath("Review.md")); }); await barReady(0);
       await page.evaluate(async () => { await app.vault.create("Review.md", "Intro.\n\nTail.\n"); });
-      await setFixture(page, source, "source"); await statusReady(3);
+      await setFixture(page, source, "source"); await barReady(3);
     });
+  }
+  if (matches("bars")) {
+    await check("separate note panes keep their own counts and bulk targets", async () => {
+      await setFixture(page, source, "source"); await barReady(3);
+      const other = "Other {++first++} and {~~old~>second~~} proposals.\n";
+      await page.evaluate(async other => {
+        globalThis.qaBarA = app.workspace.activeLeaf; qaBarA.view.contentEl.dataset.qaBar = "a";
+        const file = await app.vault.create("Bar other.md", other);
+        globalThis.qaBarB = app.workspace.getLeaf("split"); await qaBarB.openFile(file);
+        qaBarB.view.contentEl.dataset.qaBar = "b"; app.workspace.setActiveLeaf(qaBarB, { focus: true });
+      }, other);
+      try {
+        await barReady(2);
+        assert.equal(await page.locator('[data-qa-bar="a"] .inline-diff-review-bar-count').textContent(), "3 pending changes");
+        await page.locator('[data-qa-bar="a"] .inline-diff-review-bar [data-decision=reject]').click();
+        await page.evaluate(() => app.plugins.plugins["inline-diff"].lastResolution);
+        await page.waitForFunction(() => qaBarA.view.contentEl.querySelector(".inline-diff-review-bar").hidden);
+        assert.equal(await page.evaluate(() => qaBarB.view.editor.getValue()), other);
+        assert.equal(await fs.readFile(path.join(session.vault, "Bar other.md"), "utf8"), other);
+      } finally { await page.evaluate(() => { delete qaBarA.view.contentEl.dataset.qaBar; qaBarB.detach(); app.workspace.setActiveLeaf(qaBarA, { focus: true }); delete globalThis.qaBarA; delete globalThis.qaBarB; }); }
+    });
+    await check("same-file panes share a busy lock and cannot submit competing decisions", async () => {
+      await setFixture(page, source, "source"); await barReady(3);
+      await page.evaluate(async () => {
+        globalThis.qaBarA = app.workspace.activeLeaf; qaBarA.view.contentEl.dataset.qaBar = "a";
+        globalThis.qaBarB = app.workspace.getLeaf("split"); await qaBarB.openFile(qaBarA.view.file);
+        await qaBarB.setViewState({ type: "markdown", state: { file: "Review.md", mode: "source", source: true } });
+        qaBarB.view.contentEl.dataset.qaBar = "b";
+        app.plugins.plugins["inline-diff"].reviewBars.refresh();
+        const adapter = app.vault.adapter, original = adapter.readBinary;
+        globalThis.qaBarGate = { original, release: null, calls: 0, armed: true };
+        adapter.readBinary = function(file) {
+          if (file === "Review.md" && qaBarGate.armed) { qaBarGate.armed = false; qaBarGate.calls++; return new Promise(resolve => { qaBarGate.release = resolve; }); }
+          return original.call(this, file);
+        };
+      });
+      try {
+        await page.locator('[data-qa-bar="a"] .inline-diff-review-bar [data-decision=accept]').click();
+        assert.equal(await page.locator(".inline-diff-review-bar button:disabled").count(), 4);
+        const calls = await page.evaluate(async source => {
+          const plugin = app.plugins.plugins["inline-diff"];
+          qaBarB.view.contentEl.querySelector('[data-decision="reject"]').click();
+          plugin.resolveAll(plugin.readReviewSnapshot(qaBarB.view), "reject");
+          qaBarGate.release(new TextEncoder().encode(source).buffer); await plugin.lastResolution;
+          await inlineDiffQa.save(qaBarA.view); return qaBarGate.calls;
+        }, source);
+        assert.equal(calls, 1);
+        const expected = source.replace("{~~old~>new~~}", "new").replace("{~~old~>second~~}", "second").replace("{++new++}", "new");
+        await page.waitForFunction(expected => [qaBarA, qaBarB].every(leaf => leaf.view.editor.getValue() === expected && leaf.view.contentEl.querySelector(".inline-diff-review-bar").hidden), expected);
+        assert.equal(await fs.readFile(path.join(session.vault, "Review.md"), "utf8"), expected);
+      } finally { await page.evaluate(() => { app.vault.adapter.readBinary = qaBarGate.original; delete qaBarA.view.contentEl.dataset.qaBar; qaBarB.detach(); app.workspace.setActiveLeaf(qaBarA, { focus: true }); delete globalThis.qaBarGate; delete globalThis.qaBarA; delete globalThis.qaBarB; }); }
+    });
+    await check("divergent unsaved panes refuse review without changing either buffer", async () => {
+      await setFixture(page, source, "source"); await barReady(3);
+      const result = await page.evaluate(async () => {
+        const owner = app.workspace.activeLeaf, plugin = app.plugins.plugins["inline-diff"];
+        const other = app.workspace.getLeaf("split"); await other.openFile(owner.view.file);
+        await other.setViewState({ type: "markdown", state: { file: "Review.md", mode: "source", source: true } });
+        try {
+          const snapshot = plugin.readReviewSnapshot(owner.view);
+          other.view.editor.replaceRange("Unsaved competing prefix.\n", { line: 0, ch: 0 });
+          const before = [owner, other].map(leaf => leaf.view.editor.getValue());
+          plugin.resolveAll(snapshot, "accept"); await plugin.lastResolution;
+          return { before, after: [owner, other].map(leaf => leaf.view.editor.getValue()) };
+        } finally { await inlineDiffQa.save(other.view); other.detach(); app.workspace.setActiveLeaf(owner, { focus: true }); }
+      });
+      assert.deepEqual(result.after, result.before);
+    });
+    for (const mode of ["source", "live", "reading"]) for (const title of [true, false]) await check(`${mode}/title=${title} bar stays pinned above title and properties while scrolling`, async () => {
+      await page.evaluate(title => { app.vault.setConfig("showInlineTitle", title); app.workspace.updateOptions(); }, title);
+      const text = '---\ntags: [qa]\n---\nIntro.\n\n' + "An unchanged paragraph with enough text to scroll the note.\n\n".repeat(70) + "A {~~old~>new~~} proposal.\n\nTail.\n";
+      await setFixture(page, text, mode); await barReady(1, mode !== "reading");
+      await page.evaluate(mode => {
+        const view = app.workspace.activeLeaf.view;
+        if (mode !== "reading") view.editor.setCursor(3, 0);
+        view.contentEl.querySelector(mode === "reading" ? ".markdown-preview-view" : ".cm-scroller").scrollTop = 0;
+      }, mode);
+      await page.waitForFunction(title => [...app.workspace.activeLeaf.view.contentEl.querySelectorAll(".inline-title")].some(el => el.getBoundingClientRect().height > 0) === title, title);
+      const before = await page.evaluate(({ title, mode }) => {
+        const view = app.workspace.activeLeaf.view, bar = view.contentEl.querySelector(".inline-diff-review-bar"), rect = bar.getBoundingClientRect();
+        const visible = selector => [...view.contentEl.querySelectorAll(selector)].filter(el => el.getBoundingClientRect().height > 0);
+        const titles = visible(".inline-title"), properties = visible(".metadata-container");
+        if (title && !titles.length) throw Error("Native inline title is missing");
+        if (!title && titles.length) throw Error("Native inline title should be hidden");
+        for (const element of [...titles, ...properties]) if (element.getBoundingClientRect().top < rect.bottom - .5) throw Error("Review bar must precede title/properties");
+        const scroller = view.contentEl.querySelector(mode === "reading" ? ".markdown-preview-view" : ".cm-scroller");
+        if (view.contentEl.firstElementChild !== bar || scroller.contains(bar)) throw Error("Review bar is inside native scrolling content");
+        scroller.scrollTop = 600;
+        return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+      }, { title, mode });
+      await page.waitForFunction(mode => app.workspace.activeLeaf.view.contentEl.querySelector(mode === "reading" ? ".markdown-preview-view" : ".cm-scroller").scrollTop >= 590, mode);
+      const after = await page.locator(".inline-diff-review-bar").boundingBox();
+      for (const key of ["x", "y", "width", "height"]) assert.ok(Math.abs(before[key] - after[key]) <= .5, `scroll moved the bar: ${key}`);
+      assert.equal(await page.locator(".status-bar .plugin-inline-diff").count(), 0);
+      if (title && mode !== "source") await page.screenshot({ path: path.resolve(".qa", `pinned-bar-${mode}.png`) });
+    });
+    await page.evaluate(() => { app.vault.setConfig("showInlineTitle", false); app.workspace.updateOptions(); });
+    for (const width of [600, 720, 1280]) await check(`${width}px review bar wraps labelled buttons without overflow`, async () => {
+      await page.setViewportSize({ width, height: 800 }); await setFixture(page, source, "live"); await ready("live"); await barReady(3);
+      const boxes = await page.locator(".inline-diff-review-bar").evaluate(bar => {
+        const rect = bar.getBoundingClientRect();
+        return { bar: rect.toJSON(), width: bar.clientWidth, scroll: bar.scrollWidth, buttons: [...bar.querySelectorAll("button")].map(button => ({ text: button.textContent, rect: button.getBoundingClientRect().toJSON() })) };
+      });
+      assert.ok(boxes.scroll <= boxes.width + .5, "no horizontal bar overflow");
+      assert.deepEqual(boxes.buttons.map(button => button.text), ["Accept all", "Reject all"]);
+      for (const { rect } of boxes.buttons) assert.ok(rect.left >= boxes.bar.left && rect.right <= boxes.bar.right + .5 && rect.top >= boxes.bar.top && rect.bottom <= boxes.bar.bottom + .5, "buttons stay in their owning bar");
+      const layout = await bounds("live"); await page.locator(".inline-diff-review-bar button").first().hover(); equalBounds(layout, await bounds("live"));
+    });
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await check("floating block controls stay below the pinned bar after scrolling", async () => {
+      await page.mouse.move(5, 5); await page.waitForFunction(() => !document.querySelector(".notice"));
+      await setFixture(page, "Intro.\n\nA {~~old~>new~~} proposal.\n\n" + "Unchanged paragraph.\n\n".repeat(80), "live"); await ready("live", 1); await barReady(1);
+      await page.evaluate(() => { app.workspace.activeLeaf.view.contentEl.querySelector(".cm-scroller").scrollTop = 50; });
+      await hoverFirst("live");
+      const toolbar = await page.locator(".inline-diff-toolbar").boundingBox(), bar = await page.locator(".inline-diff-review-bar").boundingBox();
+      assert.ok(toolbar.y >= bar.y + bar.height, "floating toolbar must not cover bulk controls");
+    });
+    await check("shared selectors remain reachable when the toolbar is clamped below the review bar", async () => {
+      await setFixture(page, source, "live"); await ready("live"); await barReady(3);
+      await page.evaluate(() => { app.workspace.activeLeaf.view.contentEl.querySelector(".cm-scroller").scrollTop = 84; });
+      const block = page.locator(".markdown-source-view .inline-diff-review").first();
+      await block.hover({ position: { x: 6, y: 8 } });
+      await block.locator(".inline-diff-anchors .inline-diff-proposal-anchor").first().hover();
+      const toolbar = page.locator(".inline-diff-toolbar:visible"); await toolbar.waitFor();
+      const selectors = await block.locator(".inline-diff-anchors").boundingBox(), box = await toolbar.boundingBox();
+      assert.ok(box.x + box.width <= selectors.x || box.x >= selectors.x + selectors.width || box.y + box.height <= selectors.y || box.y >= selectors.y + selectors.height, "toolbar must not cover proposal selectors");
+      await toolbar.locator("[data-decision=reject]").hover(); await toolbar.locator("[data-decision=reject]").click();
+      await page.evaluate(() => app.plugins.plugins["inline-diff"].lastResolution);
+      assert.equal(await contents(), source.replace("{~~old~>new~~}", "old")); await barReady(2);
+    });
+    await check("moving a note pane into a popout recreates one bar in the owning document", async () => {
+      await setFixture(page, source, "source"); await barReady(3);
+      await page.evaluate(async () => {
+        globalThis.qaBarA = app.workspace.activeLeaf;
+        globalThis.qaBarB = app.workspace.getLeaf("split"); await qaBarB.openFile(qaBarA.view.file);
+        app.plugins.plugins["inline-diff"].reviewBars.refresh();
+        globalThis.qaOldBar = qaBarB.view.contentEl.querySelector(".inline-diff-review-bar");
+        app.workspace.moveLeafToPopout(qaBarB);
+      });
+      try {
+        await page.waitForFunction(() => qaBarB.view.contentEl.ownerDocument !== document && qaBarB.view.contentEl.querySelector(".inline-diff-review-bar")?.ownerDocument === qaBarB.view.contentEl.ownerDocument);
+        assert.equal(await page.evaluate(() => qaOldBar.isConnected), false);
+        assert.equal(await page.evaluate(() => qaBarB.view.contentEl.querySelectorAll(".inline-diff-review-bar").length), 1);
+        assert.equal(await page.evaluate(() => qaBarA.view.contentEl.querySelectorAll(".inline-diff-review-bar").length), 1);
+      } finally { await page.evaluate(() => { qaBarB.detach(); app.workspace.setActiveLeaf(qaBarA, { focus: true }); delete globalThis.qaBarA; delete globalThis.qaBarB; delete globalThis.qaOldBar; }); }
+    });
+    // Retain readable, synthetic captures with the native title/properties in
+    // view; the long-note tests above separately prove scrolling behaviour.
+    await page.evaluate(() => { app.vault.setConfig("showInlineTitle", true); app.workspace.updateOptions(); });
+    for (const mode of ["live", "reading"]) {
+      const text = '---\ntags: [review]\n---\nReview these proposed changes before accepting them.\n\nThe service {~~checks every ten seconds~>checks every thirty seconds~~}.\n\n> [!note] Review details\n> A {~~previous~>revised~~} callout.\n> Its next line keeps native spacing.\n>\n> A second paragraph.\n\nTail.\n';
+      await setFixture(page, text, mode); await ready(mode, 2); await barReady(2, mode !== "reading");
+      await page.evaluate(mode => {
+        const view = app.workspace.activeLeaf.view;
+        if (mode !== "reading") view.editor.setCursor(3, 0);
+        view.contentEl.querySelector(mode === "reading" ? ".markdown-preview-view" : ".cm-scroller").scrollTop = 0;
+      }, mode);
+      await page.waitForFunction(() => [...app.workspace.activeLeaf.view.contentEl.querySelectorAll(".inline-title")].some(el => el.getBoundingClientRect().height > 0));
+      await page.screenshot({ path: path.resolve(".qa", `pinned-bar-${mode}.png`) });
+    }
+    await page.evaluate(() => { app.vault.setConfig("showInlineTitle", false); app.workspace.updateOptions(); });
   }
   if (matches("refresh")) {
     const original = "Intro.\n\nFood, water and livelihoods are connected.\n\nTail.\n";
@@ -475,15 +675,29 @@ try {
     for (const theme of ["", "Primary", "Minimal", "Blue Topaz"]) for (const palette of ["light", "dark"]) {
       await page.evaluate(async ({ theme, palette }) => { await app.customCss.setTheme(theme); app.changeTheme(palette === "light" ? "moonstone" : "obsidian"); }, { theme, palette });
       await page.waitForFunction(palette => document.body.classList.contains(`theme-${palette}`), palette);
+      for (const width of [600, 720]) await check(`${theme || "Default"}/${palette}/${width}px/pinned-bar-layout`, async () => {
+        await page.setViewportSize({ width, height: 900 });
+        await setFixture(page, source, "live"); await ready("live"); await barReady(3); await prepareHover("live");
+        const layout = await page.locator(".inline-diff-review-bar").evaluate(bar => {
+          const box = bar.getBoundingClientRect();
+          return { overflow: bar.scrollWidth - bar.clientWidth, inside: [...bar.querySelectorAll("button")].every(button => {
+            const rect = button.getBoundingClientRect();
+            return rect.left >= box.left - .5 && rect.right <= box.right + .5 && rect.top >= box.top - .5 && rect.bottom <= box.bottom + .5;
+          }) };
+        });
+        assert.ok(layout.overflow <= .5 && layout.inside, "labelled actions wrap within their pane");
+        const before = await bounds("live"); await page.locator(".inline-diff-review-bar button").first().hover(); equalBounds(before, await bounds("live"));
+      });
+      await page.setViewportSize({ width: 1280, height: 900 });
       for (const mode of ["source", "live", "reading"]) await check(`${theme || "Default"}/${palette}/${mode}/hover-layout`, async () => {
-        await setFixture(page, "Intro.\n\nNo proposals.\n\nTail.\n", mode); await statusReady(0);
+        await setFixture(page, "Intro.\n\nNo proposals.\n\nTail.\n", mode); await barReady(0);
         const barHeight = await page.locator(".status-bar").evaluate(element => element.getBoundingClientRect().height);
         await setFixture(page, source, mode); await ready(mode);
-        await statusReady(3, mode !== "reading");
+        await barReady(3, mode !== "reading");
         const statusHeight = await page.locator(".status-bar").evaluate(element => element.getBoundingClientRect().height);
         assert.ok(Math.abs(statusHeight - barHeight) <= .5, `pending status must not change native bar height: ${barHeight} -> ${statusHeight}`);
         const statusLayout = mode !== "reading" ? await bounds(mode) : null;
-        await page.locator(".inline-diff-status").hover();
+        await page.locator(".inline-diff-review-bar").hover();
         if (statusLayout) equalBounds(statusLayout, await bounds(mode));
         if (mode !== "source") {
           const scope = page.locator(mode === "reading" ? ".markdown-reading-view" : ".markdown-source-view");
@@ -547,7 +761,7 @@ try {
             close(diff.block[0] + diff.block[2] - actual.rect[0] - actual.rect[2], 12, "original right padding");
             for (const coordinate of [2, 3]) close(actual.rect[coordinate], expected.rect[coordinate], "native text bounds at the padded width");
             assert.equal(actual.lines.length, expected.lines.length, "native wrapping");
-            for (let line = 0; line < expected.lines.length; line++) for (let coordinate = 0; coordinate < 4; coordinate++) close(actual.lines[line][coordinate], expected.lines[line][coordinate], "native line bounds");
+            for (let line = 0; line < expected.lines.length; line++) for (let coordinate = 0; coordinate < 4; coordinate++) close(actual.lines[line][coordinate], expected.lines[line][coordinate], `native line bounds ${index}/${line}/${coordinate}`);
           }
           await setFixture(page, wrap(`{~~${before}~>${after}~~}`), mode); await ready(mode, 1); await proseGeometry(mode);
           const layout = await bounds(mode);
@@ -556,6 +770,24 @@ try {
           measurements.proseSpacing ??= {};
           measurements.proseSpacing[`${theme || "Default"}/${palette}/${mode}/${width}`] = { outerMargin: diff.outer.margin, sideBorders: diff.sideBorders, contentWidth: diff.content[0].rect[2], beforeLines: diff.content[0].lines.length, afterLines: diff.content[1].lines.length, verticalPadding: diff.block[3] - diff.content[0].rect[3] - diff.content[1].rect[3] };
         }
+      });
+      const callouts = [
+        ["paragraphs", word => `> [!note] Title\n> A ${word} callout.\n> A second line.\n>\n> Another paragraph.`],
+        ["nested", word => `> [!warning] Outer\n> A **${word}** paragraph.\n>\n> > [!tip] Inner\n> > First line.\n> > Second line.\n>\n> - One item\n> - Another item`],
+        ["code-math", word => `> [!example] Code\n> A ${word} example.\n>\n> \`\`\`js\n> const value = "two  spaces";\n>   indented();\n> \`\`\`\n>\n> Inline \`a  b\` and $x + y$.`],
+        ["folded", word => `> [!note]- Folded title\n> A ${word} paragraph.\n>\n> Another paragraph.`],
+      ];
+      for (const mode of ["live", "reading"]) for (const [name, build] of callouts) await check(`${theme || "Default"}/${palette}/${mode}/${name}/native-callout-spacing`, async () => {
+        await page.setViewportSize({ width: 1280, height: 900 });
+        const wrap = text => `Intro.\n\n${text}\n\nTail.\n`;
+        await setFixture(page, wrap(build("{~~old~>new~~}")), mode); await ready(mode, 1);
+        const before = await calloutGeometry(mode, "before"), after = await calloutGeometry(mode, "after");
+        if (!theme && palette === "light" && name === "paragraphs") await page.screenshot({ path: path.resolve(".qa", `callout-spacing-${mode}.png`) });
+        await setFixture(page, wrap(build("old")), mode); const nativeBefore = await calloutGeometry(mode, undefined, before.width);
+        await setFixture(page, wrap(build("new")), mode); const nativeAfter = await calloutGeometry(mode, undefined, after.width);
+        equalCallouts(before, nativeBefore); equalCallouts(after, nativeAfter);
+        measurements.callouts ??= {};
+        measurements.callouts[`${theme || "Default"}/${palette}/${mode}/${name}`] = { beforeHeight: before.nodes[0].rect[3], afterHeight: after.nodes[0].rect[3], nativeBeforeHeight: nativeBefore.nodes[0].rect[3], nativeAfterHeight: nativeAfter.nodes[0].rect[3] };
       });
     }
     await page.evaluate(async () => { await app.customCss.setTheme(""); app.changeTheme("moonstone"); });
@@ -975,7 +1207,7 @@ try {
     await check("repeated redraw and plugin reload leave no duplicate layers", async () => {
       for (let cycle = 0; cycle < 20; cycle++) { const mode = cycle % 2 ? "live" : "reading"; await setFixture(page, source, mode); await ready(mode); }
       await page.evaluate(async () => { await app.plugins.disablePlugin("inline-diff"); });
-      assert.equal(await page.locator(".inline-diff-review,.inline-diff-toolbar,.inline-diff-hidden,.inline-diff-host").count(), 0);
+      assert.equal(await page.locator(".inline-diff-review,.inline-diff-toolbar,.inline-diff-hidden,.inline-diff-host,.inline-diff-review-bar,.inline-diff-has-review-bar").count(), 0);
       await page.evaluate(async () => { await app.plugins.enablePlugin("inline-diff"); });
       await setFixture(page, source, "live"); await ready("live");
       await hoverFirst("live");
@@ -1014,7 +1246,7 @@ try {
       await page.waitForFunction(() => {
         const anchor = document.querySelector(".markdown-source-view .inline-diff-proposal-anchor");
         const toolbar = document.querySelector(".inline-diff-toolbar");
-        const pane = app.workspace.activeLeaf.view.containerEl.getBoundingClientRect(), rect = anchor.getBoundingClientRect();
+        const pane = app.workspace.activeLeaf.view.contentEl.querySelector(".cm-scroller").getBoundingClientRect(), rect = anchor.getBoundingClientRect();
         if (rect.top > pane.bottom || rect.bottom < pane.top) return !toolbar;
         if (!toolbar) return false;
         const box = toolbar.getBoundingClientRect(), expected = Math.max(pane.top + 4, Math.min(rect.top - box.height + 4, pane.bottom - box.height - 4, innerHeight - box.height - 4));
@@ -1111,7 +1343,7 @@ try {
   await fs.writeFile(path.resolve(".qa", "interaction-failure-state.json"), JSON.stringify(await page.evaluate(() => {
     const view = app.workspace.activeLeaf.view;
     const root = view.contentEl;
-    return { source: view.getViewData(), mode: view.getMode(), scroll: [...root.querySelectorAll(".cm-scroller,.markdown-preview-view")].map(el => ({ class: el.className, top: el.scrollTop, height: el.clientHeight })), blocks: [...root.querySelectorAll(".inline-diff-review")].map(el => ({ rect: el.getBoundingClientRect().toJSON(), anchors: [...el.querySelectorAll(".inline-diff-proposal-anchor")].map(a => a.getBoundingClientRect().toJSON()) })), status: document.querySelector(".inline-diff-status")?.outerHTML };
+    return { source: view.getViewData(), mode: view.getMode(), scroll: [...root.querySelectorAll(".cm-scroller,.markdown-preview-view")].map(el => ({ class: el.className, top: el.scrollTop, height: el.clientHeight })), blocks: [...root.querySelectorAll(".inline-diff-review")].map(el => ({ rect: el.getBoundingClientRect().toJSON(), anchors: [...el.querySelectorAll(".inline-diff-proposal-anchor")].map(a => a.getBoundingClientRect().toJSON()) })), status: document.querySelector(".inline-diff-review-bar")?.outerHTML };
   }), null, 2));
   throw error;
 } finally {

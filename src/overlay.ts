@@ -123,12 +123,21 @@ export class ReviewOverlay extends Component {
     if (!this.anchor?.isConnected || this.target?.view.getMode() !== "source") { this.hide(); return; }
     const win = this.doc.defaultView!;
     const rect = this.anchor.getBoundingClientRect();
-    const pane = this.target.view.containerEl.getBoundingClientRect();
+    const surface = this.target.view.contentEl?.querySelector<HTMLElement>(".markdown-source-view .cm-scroller");
+    const pane = (surface ?? this.target.view.containerEl).getBoundingClientRect();
     if (rect.bottom < pane.top || rect.top > pane.bottom) { this.hide(); return; }
     const width = this.element.offsetWidth;
     const height = this.element.offsetHeight;
-    const left = Math.max(pane.left + 4, Math.min(rect.right - width, pane.right - width - 4, win.innerWidth - width - 4));
-    const top = Math.max(pane.top + 4, Math.min(rect.top - height + 4, pane.bottom - height - 4, win.innerHeight - height - 4));
+    let left = Math.max(pane.left + 4, Math.min(rect.right - width, pane.right - width - 4, win.innerWidth - width - 4));
+    let top = Math.max(pane.top + 4, Math.min(rect.top - height + 4, pane.bottom - height - 4, win.innerHeight - height - 4));
+    const selectors = this.anchor.querySelector<HTMLElement>(":scope > .inline-diff-anchors")?.getBoundingClientRect();
+    // At the viewport edge, clamping above the block can cover its numbered
+    // selectors. Keep them reachable while preserving the floating layout.
+    if (selectors && left < selectors.right && left + width > selectors.left && top < selectors.bottom && top + height > selectors.top) {
+      const below = selectors.bottom + 4;
+      if (below + height <= Math.min(pane.bottom, win.innerHeight) - 4) top = below;
+      else left = Math.max(pane.left + 4, selectors.left - width - 4);
+    }
     this.element.setCssProps({ left: `${left}px`, top: `${top}px` });
   }
 }

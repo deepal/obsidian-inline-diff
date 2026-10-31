@@ -29,7 +29,7 @@ Hover a rendered change block to reveal check/X icon buttons at its top right. T
 
 For keyboard review, focus the comparison and press Enter or Space to reach the icon buttons. When a block contains several changes, floating numbered anchors appear on hover or keyboard focus for independent decisions, including ambiguous visual matches. Escape returns to the anchor. Commands in the command palette also accept/reject the current change or all changes, and navigate between changes. Assign hotkeys through Obsidian's normal Hotkeys settings.
 
-The main-window status bar shows the number of pending changes in its selected note. In Source and Live Preview, the adjacent check/X buttons accept or reject all proposals in that note in one undoable action. Reading view shows the count only. The item disappears when there are no pending proposals. Popouts retain their block controls; the main status bar always belongs to the selected main-window note.
+Each note pane shows a review bar above its title when changes are pending. The bar stays visible while you scroll and counts proposals in that pane's note. In Source and Live Preview, **Accept all** and **Reject all** resolve those proposals in one undoable action. Reading and read-only panes show the count only. Split panes and popouts have their own bars; embedded notes and hover previews do not.
 
 Every review action uses native editor history. One undo restores the proposal. Changed or stale targets are refused so an action cannot overwrite a newer edit.
 
@@ -74,7 +74,7 @@ The runner launches a separate app profile, verifies its disposable-vault identi
 
 Use `OBSIDIAN_EXECUTABLE` to select a different app binary. The default is the standard macOS application location. Run the matrix or interaction suite separately with `npm run test:obsidian:matrix` and `npm run test:obsidian:interactions`. Diagnostic output and screenshots go into ignored `.qa/` files.
 
-See [testing details](CONTRIBUTING.md), the [coverage matrix](docs/coverage.md), the [original verification report](docs/test-report.md), and [pending-review status verification](docs/pending-review-testing.md).
+See [testing details](CONTRIBUTING.md), the [coverage matrix](docs/coverage.md), the [original verification report](docs/test-report.md), and [pinned review-bar verification](docs/pinned-review-bar-testing.md).
 
 ## Releases
 

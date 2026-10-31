@@ -173,6 +173,26 @@ test("overlay is outside note layout, clamps to the pane, resolves once and clea
   overlay.unload(); assert.equal(doc.querySelector(".inline-diff-toolbar"), null); document.window.close();
 });
 
+test("a clamped toolbar leaves shared proposal selectors reachable", () => {
+  const document = dom(), doc = document.window.document;
+  const pane = doc.createElement("div"), block = doc.createElement("section"), selectors = doc.createElement("div");
+  selectors.className = "inline-diff-anchors"; block.append(selectors); pane.append(block); doc.body.append(pane);
+  pane.getBoundingClientRect = () => ({ left: 100, right: 500, top: 120, bottom: 600 });
+  block.getBoundingClientRect = () => ({ left: 120, right: 480, top: 116, bottom: 400 });
+  selectors.getBoundingClientRect = () => ({ left: 430, right: 476, top: 120, bottom: 142 });
+  const overlay = new ReviewOverlay(doc, () => assert.fail("Positioning cannot resolve")); overlay.load();
+  Object.defineProperty(overlay.element, "offsetWidth", { value: 64 });
+  Object.defineProperty(overlay.element, "offsetHeight", { value: 32 });
+  overlay.show(block, { view: { getMode: () => "source", containerEl: pane } });
+  assert.equal(overlay.element.style.left, "416px");
+  assert.equal(overlay.element.style.top, "146px");
+  pane.getBoundingClientRect = () => ({ left: 100, right: 500, top: 120, bottom: 175 });
+  overlay.show(block, { view: { getMode: () => "source", containerEl: pane } });
+  assert.equal(overlay.element.style.left, "362px");
+  assert.equal(overlay.element.style.top, "124px");
+  overlay.unload(); document.window.close();
+});
+
 test("overlay refuses a Reading-view target", () => {
   const document = dom(), doc = document.window.document;
   const overlay = new ReviewOverlay(doc, () => assert.fail("Reading cannot resolve")); overlay.load();

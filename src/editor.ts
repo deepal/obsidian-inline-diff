@@ -123,7 +123,7 @@ export function editorExtension(plugin: InlineDiffPlugin) {
     };
     update(update: ViewUpdate): void {
       if (update.focusChanged) this.scheduleFocus();
-      if (update.docChanged || update.transactions.some(transaction => transaction.reconfigured)) plugin.scheduleReviewStatus();
+      if (update.docChanged || update.transactions.some(transaction => transaction.reconfigured)) plugin.scheduleReviewBars();
     }
     destroy(): void {
       if (this.frame !== null) this.view.dom.win.cancelAnimationFrame(this.frame);

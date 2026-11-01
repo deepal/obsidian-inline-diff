@@ -4,6 +4,7 @@ import path from "node:path";
 import os from "node:os";
 import { connectSession, installOracle, setFixture } from "./qa-client.mjs";
 import { literalFixtures, boundaryFixtures } from "../test/fixtures/markdown.mjs";
+import { sectionBefore, sectionAfter, whitespaceBefore, whitespaceAfter } from "../test/fixtures/rendered-spacing.mjs";
 
 const session = await connectSession(), { page } = session;
 const passed = [], measurements = {}, errors = [];
@@ -30,6 +31,11 @@ async function barReady(pending, editable = true) {
     return status.querySelector(".inline-diff-review-bar-count").textContent === text && status.querySelectorAll("button").length === (pending && editable ? 2 : 0);
   }, { pending, editable });
 }
+function spacingProposal(operation, before, after) {
+  const old = operation === "addition" ? "" : before, next = operation === "deletion" ? "" : after;
+  const marker = operation === "addition" ? `{++\n${next}\n++}` : operation === "deletion" ? `{--\n${old}\n--}` : `{~~\n${old}\n~>\n${next}\n~~}`;
+  return { source: `Intro.\n\n${marker}\n\nTail.\n`, before: old, after: next };
+}
 async function bounds(mode) {
   return page.evaluate(mode => {
     const root = app.workspace.activeLeaf.view.contentEl.querySelector(mode === "reading" ? ".markdown-reading-view" : ".markdown-source-view");
@@ -39,8 +45,8 @@ async function bounds(mode) {
     }), scroll: [root.scrollWidth, root.scrollHeight] };
   }, mode);
 }
-async function proseGeometry(mode, contentWidth) {
-  return page.evaluate(async ({ mode, contentWidth }) => {
+async function proseGeometry(mode) {
+  return page.evaluate(async mode => {
     await document.fonts.ready;
     const measure = () => {
       const root = app.workspace.activeLeaf.view.contentEl.querySelector(mode === "reading" ? ".markdown-reading-view" : ".markdown-source-view");
@@ -48,8 +54,7 @@ async function proseGeometry(mode, contentWidth) {
       const paragraphs = [...root.querySelectorAll(mode === "reading" ? "p" : ".cm-line")].filter(element => !element.closest(".inline-diff-review"));
       const above = paragraphs.find(element => element.textContent === "Above paragraph."), below = paragraphs.find(element => element.textContent === "Below paragraph.");
       const comparison = root.querySelector(".inline-diff-review");
-      const alternatives = comparison ? [...comparison.querySelectorAll(".inline-diff-content > p")] : [paragraphs.find(element => element.textContent.startsWith("The service"))];
-      if (!comparison && contentWidth !== undefined) alternatives[0].style.width = `${contentWidth}px`;
+      const alternatives = [...comparison.querySelectorAll(".inline-diff-content > p")];
       const content = alternatives.map(element => {
         const box = element.getBoundingClientRect(), lines = [], walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
         let text;
@@ -78,7 +83,28 @@ async function proseGeometry(mode, contentWidth) {
       previous = serialized;
     }
     throw Error("Prose geometry did not settle.");
-  }, { mode, contentWidth });
+  }, mode);
+}
+async function renderedGeometry(mode, before, after) {
+  return page.evaluate(async ({ mode, markdown }) => {
+    const view = app.workspace.activeLeaf.view, scope = mode === "reading" ? ".markdown-reading-view" : ".markdown-source-view";
+    const comparison = view.contentEl.querySelector(`${scope} .inline-diff-review`), results = [];
+    for (const [index, side] of ["before", "after"].entries()) results.push(await inlineDiffQa.renderedGeometry(markdown[index], comparison.querySelector(`.inline-diff-${side} .inline-diff-content`), view.file.path));
+    return results;
+  }, { mode, markdown: [before, after] });
+}
+function equalRenderedGeometry({ actual, expected }) {
+  assert.equal(actual.text, expected.text, "native rendered text including whitespace");
+  assert.equal(actual.nodes.length, expected.nodes.length, "native block/inline structure");
+  const close = (a, b, label) => assert.ok(Math.abs(a - b) <= .5, `${label}: ${a} vs ${b}`);
+  for (const [index, node] of actual.nodes.entries()) {
+    const native = expected.nodes[index], label = `${index}/${node.tag}`;
+    assert.equal(node.tag, native.tag); assert.equal(node.visible, native.visible);
+    for (const property of ["whiteSpace", "lineHeight", "marginTop", "marginBottom"]) assert.equal(node[property], native[property], `${label}/${property}`);
+    for (let coordinate = 0; coordinate < 4; coordinate++) close(node.rect[coordinate], native.rect[coordinate], `${label}/bounds/${coordinate}`);
+    assert.equal(node.lines.length, native.lines.length, `${label}/wrapped lines`);
+    for (const [line, rect] of node.lines.entries()) for (let coordinate = 0; coordinate < 4; coordinate++) close(rect[coordinate], native.lines[line][coordinate], `${label}/line/${line}/${coordinate}`);
+  }
 }
 async function calloutGeometry(mode, side, width) {
   return page.evaluate(async ({ mode, side, width }) => {
@@ -657,7 +683,7 @@ try {
     await ready("reading");
     assert.equal(await page.locator(".inline-diff-toolbar").count(), 0);
   });
-  if (matches("themes")) {
+  if (matches("themes") || matches("spacing")) {
     // Stale-target regressions intentionally create notices over the top-right
     // anchors. Let them expire before pointer/layout measurements; Playwright
     // otherwise scrolls a target while trying to avoid the notice overlay.
@@ -675,6 +701,7 @@ try {
     for (const theme of ["", "Primary", "Minimal", "Blue Topaz"]) for (const palette of ["light", "dark"]) {
       await page.evaluate(async ({ theme, palette }) => { await app.customCss.setTheme(theme); app.changeTheme(palette === "light" ? "moonstone" : "obsidian"); }, { theme, palette });
       await page.waitForFunction(palette => document.body.classList.contains(`theme-${palette}`), palette);
+      if (matches("themes")) {
       for (const width of [600, 720]) await check(`${theme || "Default"}/${palette}/${width}px/pinned-bar-layout`, async () => {
         await page.setViewportSize({ width, height: 900 });
         await setFixture(page, source, "live"); await ready("live"); await barReady(3); await prepareHover("live");
@@ -745,8 +772,8 @@ try {
           await page.setViewportSize({ width, height: 900 });
           await setFixture(page, wrap(`{~~${before}~>${after}~~}`), mode); await ready(mode, 1);
           const diff = await proseGeometry(mode);
-          await setFixture(page, wrap(before), mode); const nativeBefore = await proseGeometry(mode, diff.content[0].rect[2]);
-          await setFixture(page, wrap(after), mode); const nativeAfter = await proseGeometry(mode, diff.content[1].rect[2]);
+          const native = await renderedGeometry(mode, before, after);
+          for (const result of native) equalRenderedGeometry(result);
           const close = (actual, expected, label) => assert.ok(Math.abs(actual - expected) <= .5, `${label}: ${actual} instead of ${expected}`);
           assert.deepEqual([diff.outer.margin[0], diff.outer.margin[2]], [0, 0], "no extra outer vertical margin");
           assert.deepEqual(diff.outer.border, [0, 0, 0, 0], "no surrounding frame");
@@ -755,13 +782,9 @@ try {
           close(diff.content[0].rect[1] - diff.block[1], 8, "original top padding");
           close(diff.block[1] + diff.block[3] - diff.content[1].rect[1] - diff.content[1].rect[3], 8, "original bottom padding");
           close(diff.block[3], diff.content[0].rect[3] + diff.content[1].rect[3] + 32, "only original vertical padding adds height");
-          for (const [index, native] of [nativeBefore, nativeAfter].entries()) {
-            const actual = diff.content[index], expected = native.content[0];
+          for (const actual of diff.content) {
             close(actual.rect[0] - diff.block[0], 15, "original left padding and indicator");
             close(diff.block[0] + diff.block[2] - actual.rect[0] - actual.rect[2], 12, "original right padding");
-            for (const coordinate of [2, 3]) close(actual.rect[coordinate], expected.rect[coordinate], "native text bounds at the padded width");
-            assert.equal(actual.lines.length, expected.lines.length, "native wrapping");
-            for (let line = 0; line < expected.lines.length; line++) for (let coordinate = 0; coordinate < 4; coordinate++) close(actual.lines[line][coordinate], expected.lines[line][coordinate], `native line bounds ${index}/${line}/${coordinate}`);
           }
           await setFixture(page, wrap(`{~~${before}~>${after}~~}`), mode); await ready(mode, 1); await proseGeometry(mode);
           const layout = await bounds(mode);
@@ -789,6 +812,48 @@ try {
         measurements.callouts ??= {};
         measurements.callouts[`${theme || "Default"}/${palette}/${mode}/${name}`] = { beforeHeight: before.nodes[0].rect[3], afterHeight: after.nodes[0].rect[3], nativeBeforeHeight: nativeBefore.nodes[0].rect[3], nativeAfterHeight: nativeAfter.nodes[0].rect[3] };
       });
+      }
+      const layouts = [{ id: "section", before: sectionBefore, after: sectionAfter }];
+      if (!theme && palette === "light") layouts.push({ id: "whitespace", before: whitespaceBefore, after: whitespaceAfter });
+      for (const fixture of layouts) for (const mode of ["live", "reading"]) for (const width of fixture.id === "section" ? [720, 1280] : [1280]) for (const lineHeight of ["native", "200-percent"]) for (const operation of ["addition", "deletion", "replacement"]) {
+        const name = `${theme || "Default"}/${palette}/${mode}/${width}/${lineHeight}/${fixture.id}/${operation}/native-block-spacing`;
+        if (process.env.QA_SPACING_FILTER && !new RegExp(process.env.QA_SPACING_FILTER).test(name)) continue;
+        await check(name, async () => {
+          await page.setViewportSize({ width, height: 900 });
+          await page.evaluate(lineHeight => {
+            document.querySelector("#qa-spacing-line-height")?.remove();
+            if (lineHeight !== "native") { const style = document.createElement("style"); style.id = "qa-spacing-line-height"; style.textContent = ".cm-contentContainer, .markdown-rendered { line-height: 200% !important; }"; document.head.append(style); }
+          }, lineHeight);
+          const proposal = spacingProposal(operation, fixture.before, fixture.after);
+          await setFixture(page, proposal.source, mode); await ready(mode, 1); await barReady(1, mode !== "reading");
+          const geometry = await renderedGeometry(mode, proposal.before, proposal.after);
+          try { for (const result of geometry) equalRenderedGeometry(result); }
+          catch (error) { await fs.writeFile(path.resolve(".qa/native-spacing-failure.json"), JSON.stringify({ name, geometry }, null, 2)); throw error; }
+          if (fixture.id === "section") {
+            const adjacency = await page.evaluate(mode => {
+              const scope = mode === "reading" ? ".markdown-reading-view" : ".markdown-source-view";
+              return [...app.workspace.activeLeaf.view.contentEl.querySelectorAll(`${scope} .inline-diff-content`)].filter(body => !body.querySelector(".inline-diff-empty")).map(body => ({ heading: !!body.querySelector("p + h3"), list: body.querySelectorAll("ul > li + li").length, separatorMarks: [...body.querySelectorAll(".inline-diff-changed")].filter(mark => /^[\t\n\f\r ]+$/.test(mark.textContent) && mark.parentElement.matches(".inline-diff-content,ul,ol")).length }));
+            }, mode);
+            assert.ok(adjacency.every(result => result.heading && result.list >= 2 && result.separatorMarks === 0), "native heading/list adjacency survives highlighting");
+          }
+          await page.mouse.move(5, 5);
+          const point = await page.evaluate(mode => {
+            const view = app.workspace.activeLeaf.view, scope = mode === "reading" ? ".markdown-reading-view" : ".markdown-source-view";
+            const block = view.contentEl.querySelector(`${scope} .inline-diff-review`).getBoundingClientRect(), viewport = view.contentEl.querySelector(mode === "reading" ? ".markdown-preview-view" : ".cm-scroller").getBoundingClientRect();
+            return { x: block.left + 6, y: Math.max(block.top + 8, viewport.top + 8) };
+          }, mode);
+          const layout = await bounds(mode); await page.mouse.move(point.x, point.y);
+          if (mode === "reading") assert.equal(await page.locator(".inline-diff-toolbar").count(), 0);
+          else await page.locator(".inline-diff-toolbar:visible").waitFor();
+          equalBounds(layout, await bounds(mode));
+          assert.equal(await contents(), proposal.source);
+          assert.equal(await fs.readFile(path.join(session.vault, "Review.md"), "utf8"), proposal.source);
+          measurements.blockSpacing ??= {};
+          measurements.blockSpacing[name] = geometry.map(({ actual, expected }, index) => ({ empty: ![proposal.before, proposal.after][index], height: actual.nodes[0].rect[3], nativeHeight: expected.nodes[0].rect[3], nodes: actual.nodes.length }));
+          if (!theme && palette === "light" && width === 1280 && lineHeight === "200-percent" && fixture.id === "section" && operation === "addition") await page.screenshot({ path: path.resolve(".qa", `native-block-spacing-${mode}.png`) });
+        });
+      }
+      await page.evaluate(() => document.querySelector("#qa-spacing-line-height")?.remove());
     }
     await page.evaluate(async () => { await app.customCss.setTheme(""); app.changeTheme("moonstone"); });
   }
@@ -1212,6 +1277,26 @@ try {
       await setFixture(page, source, "live"); await ready("live");
       await hoverFirst("live");
       assert.equal(await page.locator(".inline-diff-toolbar").count(), 1);
+    });
+    await check("plugin reload preserves native whole-section spacing in an existing editor", async () => {
+      const proposal = spacingProposal("addition", sectionBefore, sectionAfter);
+      await page.evaluate(() => {
+        const style = document.createElement("style"); style.id = "qa-spacing-line-height";
+        style.textContent = ".cm-contentContainer, .markdown-rendered { line-height: 200% !important; }";
+        document.head.append(style);
+      });
+      try {
+        await setFixture(page, proposal.source, "live"); await ready("live", 1);
+        // Do not reset the note after reload: its first render can precede CSS.
+        await page.evaluate(async () => {
+          await app.plugins.disablePlugin("inline-diff");
+          await app.plugins.loadManifests();
+          await app.plugins.enablePlugin("inline-diff");
+        });
+        await ready("live", 1); await barReady(1, true);
+        for (const geometry of await renderedGeometry("live", proposal.before, proposal.after)) equalRenderedGeometry(geometry);
+        assert.equal(await contents(), proposal.source);
+      } finally { await page.evaluate(() => document.querySelector("#qa-spacing-line-height")?.remove()); }
     });
   }
 

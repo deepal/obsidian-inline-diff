@@ -1,6 +1,6 @@
 # Markdown coverage matrix
 
-The fixture manifest is `test/fixtures/markdown.mjs`. It contains independently authored original/proposed Markdown. Each feature runs as addition, deletion, and replacement in Source, Live Preview, and Reading: **147 features, 441 proposal fixtures, 1,323 real-app view cases**. Every editable case checks both decisions, the exact saved file, one-step undo, and redo. Reading cases check rich rendering and action exclusion.
+The fixture manifest is `test/fixtures/markdown.mjs`, including synthetic complete-section cases from `test/fixtures/rendered-spacing.mjs`. It contains independently authored original/proposed Markdown. Each feature runs as addition, deletion, and replacement in Source, Live Preview, and Reading: **149 features, 447 proposal fixtures, 1,341 real-app view cases**. Every editable case checks both decisions, the exact saved file, one-step undo, and redo. Reading cases check rich rendering and action exclusion.
 
 | Family | Features | Proposal fixtures | View cases |
 | --- | ---: | ---: | ---: |
@@ -11,6 +11,7 @@ The fixture manifest is `test/fixtures/markdown.mjs`. It contains independently 
 | Code and generated blocks | 12 | 36 | 108 |
 | Math, HTML and comments | 11 | 33 | 99 |
 | Embeds | 11 | 33 | 99 |
+| Combined block/whitespace layouts | 2 | 6 | 18 |
 
 Native-render comparisons check meaningful DOM structure, Markdown destinations, callout types, table alignment, media options, and footnote structure. Marks added by this plugin and native display controls are excluded from comparison. PDF checks use stable embed destinations/options because PDF.js generates asynchronous internal DOM.
 
@@ -43,6 +44,8 @@ Native-render comparisons check meaningful DOM structure, Markdown destinations,
 `note-embed`, `heading-embed`, `block-embed`, `wiki-image`, `markdown-image`, `audio`, `video`, `pdf`, `canvas`, `base-embed`, `missing-embed`.
 
 ## Boundary, safety and integration coverage
+
+`multi-block-spacing` combines headings, paragraphs, formatting, links, inline code, and tight/loose nested lists. `rendered-whitespace` combines nested callouts, tables, fenced/indented code, math, preformatted HTML, line breaks, Unicode and NBSP. Additional geometry checks retain highlight wrappers and compare complete block positions, gaps, dimensions, and wrapping with native rendering. The primary section runs across all four themes, both rendered views, two widths and native/200% line heights.
 
 Ten additional boundary fixtures run through all views: document-only additions/deletions/replacements, empty arms, empty block form, adjacent proposals, a leading horizontal rule, and excluded frontmatter. Literal fixtures cover escaped markers, inline/fenced/indented code, math, HTML, and both comment syntaxes.
 

@@ -81,13 +81,65 @@ module.exports = class extends o.Plugin {
     const s=require('@codemirror/state');
     view.editor.cm.dispatch({effects:s.StateEffect.appendConfig.of(s.EditorState.readOnly.of(true))});
    },
-   async render(markdown) {
+   async render(markdown, options = {}) {
     const root = document.createElement('div');
-    root.className = 'markdown-rendered inline-diff-review inline-diff-qa-oracle';
+    const host = document.createElement('div');
+    root.className = 'markdown-rendered inline-diff-qa-oracle ' + (options.geometry ? 'inline-diff-content' : 'inline-diff-review');
     root.style.cssText = 'position:fixed;left:-10000px;width:600px;top:0';
-    document.body.append(root);const owner = new o.Component();owner.load();
-    await o.MarkdownRenderer.render(app, markdown, root, 'Review.md', owner);
-    return { root, dispose() { owner.unload();root.remove(); } };
+    if (options.geometry) {
+     root.style.width = options.width + 'px';
+     root.style.visibility = 'hidden';
+     root.style.whiteSpace = 'normal';
+     for (const [name, value] of Object.entries(options.typography)) root.style.setProperty(name, value);
+    }
+    if (options.geometry) {
+     host.style.cssText='position:fixed;left:-10000px;top:0;visibility:hidden;pointer-events:none';
+     let parent=host;
+     // Reproduce view-specific theme selectors without using a real editor.
+     for (const classes of options.context || []) { const context=document.createElement('div');context.className=classes;context.style.display='block';parent.append(context);parent=context; }
+     parent.append(root);document.body.append(host);
+    } else document.body.append(root);
+    const owner = new o.Component();owner.load();
+    try {
+     await o.MarkdownRenderer.render(app, markdown, root, options.sourcePath || 'Review.md', owner);
+     return { root, dispose() { owner.unload();root.remove();host.remove(); } };
+    } catch(error) { owner.unload(); root.remove();host.remove(); throw error; }
+   },
+   async renderedGeometry(markdown, actual, sourcePath) {
+    await document.fonts.ready;
+    const style = getComputedStyle(actual), typography = {};
+    for (const name of ['font-family','font-size','font-weight','font-feature-settings','font-variation-settings','line-height','letter-spacing','word-spacing','direction','text-align','text-indent','tab-size','overflow-wrap','word-break']) typography[name] = style.getPropertyValue(name);
+    // Preserve unitless inheritance when inline code uses a smaller font.
+    typography['line-height'] = actual.computedStyleMap().get('line-height').toString();
+    const context=[];
+    for(let parent=actual.parentElement;parent;parent=parent.parentElement)if(parent.matches('.markdown-source-view,.markdown-reading-view,.markdown-preview-view,.markdown-preview-sizer,.markdown-preview-section'))context.unshift(parent.className);
+    const oracle = await this.render(markdown, {geometry:true,width:actual.getBoundingClientRect().width,typography,sourcePath,context});
+    try {
+     if (!markdown.trim()) { const empty = document.createElement('span'); empty.className='inline-diff-empty';empty.textContent='Empty';oracle.root.append(empty); }
+     const measure = root => {
+      const origin=root.getBoundingClientRect(), selector='h1,h2,h3,h4,h5,h6,p,ul,ol,li,blockquote,.callout,.callout-title,.callout-content,table,thead,tbody,tfoot,tr,th,td,pre,code,hr,.math';
+      return {text:root.textContent, nodes:[root,...root.querySelectorAll(selector)].map(element=>{
+       const box=element.getBoundingClientRect(), css=getComputedStyle(element), lines=[], walker=document.createTreeWalker(element,NodeFilter.SHOW_TEXT);
+       let node;while((node=walker.nextNode())){const range=document.createRange();range.selectNodeContents(node);for(const r of range.getClientRects()){
+        if(!r.width||!r.height)continue;
+        const x=r.x-box.x,y=r.y-box.y,line=lines.find(line=>Math.abs(line[1]-y)<=.5&&Math.abs(line[3]-r.height)<=.5);
+        if(line){const right=Math.max(line[0]+line[2],x+r.width);line[0]=Math.min(line[0],x);line[2]=right-line[0];}else lines.push([x,y,r.width,r.height]);
+       }}
+       lines.sort((a,b)=>a[1]-b[1]||a[0]-b[0]);
+       const visible=box.width>0&&box.height>0;
+       return {tag:element.tagName,visible,whiteSpace:css.whiteSpace,lineHeight:css.lineHeight,marginTop:css.marginTop,marginBottom:css.marginBottom,rect:visible?[box.x-origin.x,box.y-origin.y,box.width,box.height]:[0,0,0,0],lines};
+      })};
+     };
+     let previous='',stable=0;const deadline=performance.now()+10000;
+     while(performance.now()<deadline){
+      await new Promise(resolve=>requestAnimationFrame(resolve));
+      const result={actual:measure(actual),expected:measure(oracle.root)},serialized=JSON.stringify(result);
+      stable=serialized===previous&&document.fonts.status==='loaded'?stable+1:0;
+      if(stable>=12)return result;
+      previous=serialized;
+     }
+     throw Error('Native rendered geometry did not settle.');
+    } finally { oracle.dispose(); }
    },
    undo(view) { return view.editor.undo(); },
    redo(view) { return view.editor.redo(); },

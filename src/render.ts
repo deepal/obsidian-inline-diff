@@ -25,11 +25,50 @@ function textNodes(root: HTMLElement): Text[] {
   return nodes;
 }
 
-function markRange(root: HTMLElement, from: number, to: number, side: "before" | "after"): void {
+/** Renderer formatting whitespace must not become an element between blocks. */
+function structuralSeparators(root: HTMLElement): Set<Text> {
+  const separators = new Set<Text>();
+  const win = root.ownerDocument.defaultView!;
+  const block = (element: Element | null): boolean => {
+    if (!element) return false;
+    return /^(block|flow-root|list-item|flex|grid|table)(\s|-|$)/.test(win.getComputedStyle(element).display);
+  };
+  // Obsidian can render existing panes before reloading the plugin stylesheet.
+  // Measure using the comparison's intended whitespace even during that gap.
+  const previous = root.getAttribute("style");
+  root.setCssStyles({ whiteSpace: "normal" });
+  try {
+    for (const node of textNodes(root)) {
+      // NBSP and other Unicode spaces can be meaningful rendered content.
+      if (!/^[\t\n\f\r ]+$/.test(node.data)) continue;
+      let preserved = false;
+      for (let parent = node.parentElement; parent; parent = parent.parentElement) {
+        if (parent.matches("pre,code,textarea,math,mjx-container,svg") || /^(pre|pre-wrap|pre-line|break-spaces)$/.test(win.getComputedStyle(parent).whiteSpace)) { preserved = true; break; }
+        if (parent === root) break;
+      }
+      if (!preserved && (node.parentElement?.matches("ul,ol,table,thead,tbody,tfoot,tr,colgroup") || block(node.previousElementSibling) || block(node.nextElementSibling))) separators.add(node);
+    }
+  } finally {
+    if (previous === null) root.removeAttribute("style");
+    else root.setAttribute("style", previous);
+  }
+  return separators;
+}
+
+function markRange(root: HTMLElement, from: number, to: number, side: "before" | "after", separators: Set<Text>): boolean {
   let position = 0;
+  let marked = false;
   for (const node of textNodes(root)) {
     const end = position + node.length;
-    if (position < to && end > from) {
+    if (!separators.has(node) && position < to && end > from) {
+      const structure = node.parentElement?.closest(".math,svg");
+      // MathJax/SVG glyph layout cannot contain ordinary HTML highlight spans.
+      if (structure) {
+        structure.classList.add(`inline-diff-${side === "before" ? "deletion" : "addition"}`);
+        marked = true;
+        position = end;
+        continue;
+      }
       const range = root.ownerDocument.createRange();
       range.setStart(node, Math.max(0, from - position));
       range.setEnd(node, Math.min(node.length, to - position));
@@ -37,16 +76,21 @@ function markRange(root: HTMLElement, from: number, to: number, side: "before" |
       const mark = root.ownerDocument.createElement("span");
       mark.className = `inline-diff-changed inline-diff-${side === "before" ? "deletion" : "addition"}`;
       range.surroundContents(mark);
+      marked = true;
     }
     position = end;
   }
+  return marked;
 }
 
 function highlight(before: HTMLElement, after: HTMLElement, proposals: Proposal[]): Set<string> {
   const visible = new Set<string>();
   const oldText = before.textContent ?? "";
   const newText = after.textContent ?? "";
-  type Highlight = { from: number; to: number; proposal: Proposal | undefined };
+  const oldSeparators = structuralSeparators(before), newSeparators = structuralSeparators(after);
+  const withoutSeparators = (root: HTMLElement, separators: Set<Text>) => textNodes(root).filter(node => !separators.has(node)).map(node => node.data).join("");
+  if (withoutSeparators(before, oldSeparators) === withoutSeparators(after, newSeparators)) return visible;
+  type Highlight = { from: number; to: number; ids: string[] };
   const oldRanges: Highlight[] = [], newRanges: Highlight[] = [];
   let oldPosition = 0, newPosition = 0;
   for (const part of diffWordsWithSpace(oldText, newText)) {
@@ -55,14 +99,14 @@ function highlight(before: HTMLElement, after: HTMLElement, proposals: Proposal[
       // Never guess an action target for indistinguishable visual hunks.
       // Numbered source anchors retain exact identity for those proposals.
       const proposal = proposals.length === 1 ? proposals[0] : candidates.length === 1 ? candidates[0] : undefined;
-      for (const candidate of proposal ? [proposal] : candidates) visible.add(candidate.id);
-      if (part.removed) oldRanges.push({ from: oldPosition, to: oldPosition + part.value.length, proposal });
-      else newRanges.push({ from: newPosition, to: newPosition + part.value.length, proposal });
+      const ids = (proposal ? [proposal] : candidates).map(candidate => candidate.id);
+      if (part.removed) oldRanges.push({ from: oldPosition, to: oldPosition + part.value.length, ids });
+      else newRanges.push({ from: newPosition, to: newPosition + part.value.length, ids });
     }
     if (!part.added) oldPosition += part.value.length;
     if (!part.removed) newPosition += part.value.length;
   }
-  const apply = (root: HTMLElement, text: string, ranges: Highlight[], side: "before" | "after") => {
+  const apply = (root: HTMLElement, text: string, ranges: Highlight[], side: "before" | "after", separators: Set<Text>) => {
     const clusters = new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text);
     const merged: Highlight[] = [];
     for (const range of ranges) {
@@ -72,12 +116,12 @@ function highlight(before: HTMLElement, after: HTMLElement, proposals: Proposal[
       const previous = merged[merged.length - 1];
       if (previous && expanded.from < previous.to) {
         previous.to = Math.max(previous.to, expanded.to);
-        if (previous.proposal?.id !== expanded.proposal?.id) previous.proposal = undefined;
+        previous.ids = [...new Set([...previous.ids, ...expanded.ids])];
       } else merged.push(expanded);
     }
-    for (const range of merged) markRange(root, range.from, range.to, side);
+    for (const range of merged) if (markRange(root, range.from, range.to, side, separators)) for (const id of range.ids) visible.add(id);
   };
-  apply(before, oldText, oldRanges, "before"); apply(after, newText, newRanges, "after");
+  apply(before, oldText, oldRanges, "before", oldSeparators); apply(after, newText, newRanges, "after", newSeparators);
   return visible;
 }
 

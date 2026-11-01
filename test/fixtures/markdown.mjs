@@ -1,5 +1,6 @@
 // Expected Markdown is authored independently of the plugin parser/renderer.
 // A slot changes visible text within a construct; whole cases change structure.
+import { spacingFeatures } from "./rendered-spacing.mjs";
 const slots = [
   ["paragraph", "text", "A § sentence."],
   ["soft-break", "text", "First line\nA § sentence."],
@@ -114,6 +115,7 @@ for (const type of callouts) slots.push([`callout-type-${type}`, "containers", `
 for (const [colour, emoji] of [["orange", "🟠"], ["yellow", "🟡"], ["green", "🟢"], ["blue", "🔵"], ["purple", "🟣"]]) slots.push([`highlight-${colour}`, "text", `==${emoji}A § phrase==`]);
 
 export const features = [
+  ...spacingFeatures,
   ...slots.map(([id, family, template]) => ({ id, family, template, before: "old", after: "new" })),
   ...whole.map(([id, family, before, after]) => ({ id, family, before, after })),
 ];

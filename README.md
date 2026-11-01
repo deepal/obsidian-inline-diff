@@ -35,6 +35,8 @@ Every review action uses native editor history. One undo restores the proposal. 
 
 Settings expose independent addition/deletion text and background colours, with theme-aware defaults and a reset button. Comparison bodies are display-only, including task checkboxes and generated Bases views. Links, callout folding, and normal media display remain available.
 
+Rendered comparisons retain native heading, paragraph, and list spacing, including custom line heights. Code and preformatted content retain their native whitespace rules. Math and SVG changes colour the existing rendered elements without inserting spans into their glyph layouts.
+
 See the [agent syntax guide](docs/agent-syntax.md) for structural changes, literal constructs, escaping, and exact newline rules.
 
 ## Build and deploy locally
@@ -74,7 +76,7 @@ The runner launches a separate app profile, verifies its disposable-vault identi
 
 Use `OBSIDIAN_EXECUTABLE` to select a different app binary. The default is the standard macOS application location. Run the matrix or interaction suite separately with `npm run test:obsidian:matrix` and `npm run test:obsidian:interactions`. Diagnostic output and screenshots go into ignored `.qa/` files.
 
-See [testing details](CONTRIBUTING.md), the [coverage matrix](docs/coverage.md), the [original verification report](docs/test-report.md), and [pinned review-bar verification](docs/pinned-review-bar-testing.md).
+See [testing details](CONTRIBUTING.md), the [coverage matrix](docs/coverage.md), the [original verification report](docs/test-report.md), [pinned review-bar verification](docs/pinned-review-bar-testing.md), and [rendered-spacing verification](docs/rendered-spacing-testing.md).
 
 ## Releases
 

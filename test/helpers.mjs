@@ -36,6 +36,7 @@ export function dom() {
   win.ResizeObserver = class { observe() {} disconnect() {} };
   Object.defineProperty(win.HTMLElement.prototype, "win", { get() { return win; } });
   win.HTMLElement.prototype.setCssProps = function(values) { for (const [name, value] of Object.entries(values)) this.style.setProperty(name, value); };
+  win.HTMLElement.prototype.setCssStyles = function(values) { Object.assign(this.style, values); };
   for (const [method, tag] of [["createDiv", "div"], ["createSpan", "span"]]) win.HTMLElement.prototype[method] = function(options = {}) { return this.createEl(tag, options); };
   win.HTMLElement.prototype.createEl = function(tag, options = {}) {
     const el = this.ownerDocument.createElement(tag);

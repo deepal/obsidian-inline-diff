@@ -14,8 +14,7 @@
 .inline-diff-after { background-color: color-mix(in srgb, var(--inline-diff-addition-background) 35%, transparent); border-left-color: var(--inline-diff-addition-text); }
 .inline-diff-content > :first-child { margin-top: 0; }
 .inline-diff-content > :last-child { margin-bottom: 0; }
-.inline-diff-content { overflow-x: auto; }
-.inline-diff-content .callout { white-space: normal; }
+.inline-diff-content { overflow-x: auto; white-space: normal; }
 .inline-diff-render-context { display: none !important; }
 .inline-diff-review .inline-diff-addition, .inline-diff-source-mark.inline-diff-addition { color: var(--inline-diff-addition-text); background: var(--inline-diff-addition-background); }
 .inline-diff-review .inline-diff-deletion, .inline-diff-source-mark.inline-diff-deletion { color: var(--inline-diff-deletion-text); background: var(--inline-diff-deletion-background); }

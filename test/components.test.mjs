@@ -141,6 +141,86 @@ test("highlight boundaries preserve complete emoji grapheme clusters", async () 
   f.comparison.unload(); f.dom.window.close();
 });
 
+for (const kind of ["addition", "deletion", "replacement"]) test(`${kind} preserves block and list adjacency and exact rendered text`, async () => {
+  const html = '<h2>New heading</h2>\n<p>First <strong>paragraph</strong>.</p>\n<h3>Details</h3>\n<ul>\n<li>One</li>\n<li>Two<ul>\n<li>Nested</li>\n<li>Last</li>\n</ul></li>\n</ul>\n<p>Final words.</p>';
+  const marker = kind === "addition" ? `{++${html}++}` : kind === "deletion" ? `{--${html}--}` : `{~~<p>Old content.</p>~>${html}~~}`;
+  const f = setup(marker);
+  await f.comparison.ready;
+  const body = f.comparison.element.querySelector(`.inline-diff-${kind === "deletion" ? "before" : "after"} .inline-diff-content`);
+  const native = body.ownerDocument.createElement("div"); native.innerHTML = html;
+  assert.equal(body.textContent, native.textContent);
+  assert.deepEqual([...body.children].map(el => el.tagName), ["H2", "P", "H3", "UL", "P"]);
+  assert.ok(body.querySelector("p + h3")); assert.equal(body.querySelectorAll("ul > li + li").length, 2);
+  assert.ok([...body.querySelectorAll(".inline-diff-changed")].every(el => !/^[\t\n\f\r ]+$/.test(el.textContent)));
+  assert.match(body.querySelector("p:last-child .inline-diff-changed").textContent, /Final/);
+  f.comparison.unload(); f.dom.window.close();
+});
+
+for (const separator of ["", "\n", "\n\n"]) test(`separator-only changes retain source evidence (${JSON.stringify(separator)})`, async () => {
+  const f = setup(`{~~<p>First</p>\n<p>Last</p>~><p>First</p>${separator}<p>Last</p>~~}`);
+  await f.comparison.ready;
+  assert.equal(f.comparison.element.querySelectorAll(".inline-diff-content .inline-diff-changed").length, 0);
+  assert.equal(f.comparison.element.querySelectorAll(".inline-diff-source-entry").length, 1);
+  f.comparison.unload(); f.dom.window.close();
+});
+
+test("highlight offsets include unwrapped separators before a later inline replacement", async () => {
+  const f = setup('{~~<p>Leading.</p>\n<h3>Section</h3>\n<p>Tail old value.</p>~><p>Leading.</p>\n<h3>Section</h3>\n<p>Tail new value.</p>~~}');
+  await f.comparison.ready;
+  for (const [side, word] of [["before", "old"], ["after", "new"]]) {
+    const body = f.comparison.element.querySelector(`.inline-diff-${side} .inline-diff-content`);
+    assert.deepEqual([...body.children].map(el => el.tagName), ["P", "H3", "P"]);
+    assert.deepEqual([...body.querySelectorAll(".inline-diff-changed")].map(el => el.textContent), [word]);
+    assert.equal(body.lastElementChild.textContent, `Tail ${word} value.`);
+  }
+  f.comparison.unload(); f.dom.window.close();
+});
+
+test("highlighting ignores inherited editor whitespace before the stylesheet is ready and restores its measurement context", async () => {
+  let finish;
+  globalThis.__renderGate = new Promise(resolve => { finish = resolve; });
+  const f = setup('{++<h2>Heading</h2>\n<p>Paragraph.</p>\n<h3>Next</h3>\n<ul>\n<li>One</li>\n<li>Two</li>\n</ul>++}');
+  const bodies = [...f.comparison.element.querySelectorAll(".inline-diff-content")];
+  for (const body of bodies) body.setAttribute("style", "white-space: break-spaces !important");
+  const originalStyles = bodies.map(body => body.getAttribute("style"));
+  try {
+    finish(); await f.comparison.ready;
+    const body = bodies[1];
+    assert.deepEqual([...body.children].map(el => el.tagName), ["H2", "P", "H3", "UL"]);
+    assert.ok(body.querySelector("p + h3"));
+    assert.equal(body.querySelectorAll("ul > li + li").length, 1);
+    assert.ok([...body.querySelectorAll(".inline-diff-changed")].every(el => !/^[\t\n\f\r ]+$/.test(el.textContent)));
+    for (const [index, body] of bodies.entries()) {
+      assert.equal(body.style.getPropertyValue("white-space"), "break-spaces");
+      assert.equal(body.getAttribute("style"), originalStyles[index]);
+    }
+  } finally { delete globalThis.__renderGate; f.comparison.unload(); f.dom.window.close(); }
+});
+
+test("preformatted whitespace, inline spaces, and NBSP remain highlightable", async () => {
+  const html = '<pre> \n\n</pre>\n<div style="white-space: pre-wrap">\n\n</div>\n<p><b>A</b> <i>B</i>\u00a0<strong>C</strong></p>\n<p>Tail.</p>';
+  const f = setup(`{++${html}++}`); await f.comparison.ready;
+  const body = f.comparison.element.querySelector(".inline-diff-after .inline-diff-content");
+  assert.equal(body.querySelector("pre .inline-diff-changed").textContent, " \n\n");
+  assert.equal(body.querySelector("div[style] .inline-diff-changed").textContent, "\n\n");
+  assert.ok([...body.querySelectorAll("p > .inline-diff-changed")].some(el => el.textContent === " "));
+  assert.ok([...body.querySelectorAll("p > .inline-diff-changed")].some(el => el.textContent === "\u00a0"));
+  assert.equal(body.querySelector("p:last-child").textContent, "Tail.");
+  f.comparison.unload(); f.dom.window.close();
+});
+
+test("math and SVG highlights preserve the native glyph tree", async () => {
+  const f = setup('{~~<div class="math"><mjx-container><mjx-c>x</mjx-c></mjx-container></div><svg><text>old</text></svg>~><div class="math"><mjx-container><mjx-c>y</mjx-c></mjx-container></div><svg><text>new</text></svg>~~}');
+  await f.comparison.ready;
+  for (const side of ["before", "after"]) {
+    const root = f.comparison.element.querySelector(`.inline-diff-${side} .inline-diff-content`), colour = side === "before" ? "inline-diff-deletion" : "inline-diff-addition";
+    assert.ok(root.querySelector(`.math.${colour} > mjx-container > mjx-c`));
+    assert.ok(root.querySelector(`svg.${colour} > text`));
+    assert.equal(root.querySelector(".math .inline-diff-changed,svg .inline-diff-changed"), null);
+  }
+  f.comparison.unload(); f.dom.window.close();
+});
+
 test("unloaded comparisons ignore late rendering results", async () => {
   let finish;
   globalThis.__renderGate = new Promise(resolve => { finish = resolve; });

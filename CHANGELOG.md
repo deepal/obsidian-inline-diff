@@ -1,3 +1,9 @@
+## [1.2.2](https://github.com/deepal/obsidian-inline-diff/compare/1.2.1...1.2.2) (2026-11-01)
+
+### Bug Fixes
+
+* preserve native spacing in rendered markdown diffs ([f5e7e16](https://github.com/deepal/obsidian-inline-diff/commit/f5e7e1651f2a7f134ba26e6b19dcd65afed488f7))
+
 ## [1.2.1](https://github.com/deepal/obsidian-inline-diff/compare/1.2.0...1.2.1) (2026-10-31)
 
 ### Bug Fixes

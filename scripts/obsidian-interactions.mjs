@@ -28,7 +28,7 @@ async function barReady(pending, editable = true) {
     if (!status) return pending === 0;
     if (status.hidden !== (pending === 0)) return false;
     const text = pending ? `${pending} pending ${pending === 1 ? "change" : "changes"}` : "";
-    return status.querySelector(".inline-diff-review-bar-count").textContent === text && status.querySelectorAll("button").length === (pending && editable ? 2 : 0);
+    return status.querySelector(".inline-diff-review-bar-count").textContent === text && status.querySelectorAll("[data-decision]").length === (pending && editable ? 2 : 0) && status.querySelectorAll("[data-direction]").length === (pending ? 2 : 0) && [...status.querySelectorAll("[data-direction]")].every(button => button.disabled === (pending <= 1));
   }, { pending, editable });
 }
 function spacingProposal(operation, before, after) {
@@ -202,7 +202,7 @@ async function blockToolbarPosition(block) {
 
 try {
   await installOracle(session);
-  assert.equal(await page.evaluate(() => inlineDiffQa.version), "1.14.5");
+  assert.equal(await page.evaluate(() => inlineDiffQa.supportsApi(app.plugins.manifests["inline-diff"].minAppVersion)), true, "Obsidian supports the plugin's declared minimum API");
   measurements.runtime = await page.evaluate(() => ({ obsidian: inlineDiffQa.version, electron: process.versions.electron, chromium: process.versions.chrome, node: process.versions.node }));
   measurements.frontmatter = await page.evaluate(() => ({ unclosed: inlineDiffQa.frontmatterInfo("---\nBody.\n").exists, closed: inlineDiffQa.frontmatterInfo("---\ntitle: Test\n---\nBody.\n").exists }));
   if (matches("status")) {
@@ -262,7 +262,7 @@ try {
       });
       try {
         await page.locator(".inline-diff-review-bar [data-decision=accept]").click();
-        assert.equal(await page.locator(".inline-diff-review-bar button:disabled").count(), 2);
+        assert.equal(await page.locator(".inline-diff-review-bar button:disabled").count(), 4);
         const result = await page.evaluate(async source => {
           document.querySelector('.inline-diff-review-bar [data-decision="reject"]').click();
           const e = app.workspace.activeLeaf.view.editor; e.replaceRange("Unsaved prefix.\n", { line: 0, ch: 0 });
@@ -311,7 +311,7 @@ try {
       assert.equal(result.current, source.replace("{~~old~>new~~}", "old").replace("{~~old~>second~~}", "old").replace("{++new++}", ""));
       assert.equal(result.other, await fs.readFile(path.join(session.vault, "Other.md"), "utf8"));
     });
-    await check("read-only editor state exposes only the pending count", async () => {
+    await check("read-only editor state exposes navigation without mutation controls", async () => {
       await setFixture(page, source, "source"); await barReady(3);
       await page.evaluate(() => inlineDiffQa.makeReadOnly(app.workspace.activeLeaf.view));
       await barReady(3, false); assert.equal(await execute("accept-all-changes"), false);
@@ -446,7 +446,7 @@ try {
       });
       try {
         await page.locator('[data-qa-bar="a"] .inline-diff-review-bar [data-decision=accept]').click();
-        assert.equal(await page.locator(".inline-diff-review-bar button:disabled").count(), 4);
+        assert.equal(await page.locator(".inline-diff-review-bar button:disabled").count(), 8);
         const calls = await page.evaluate(async source => {
           const plugin = app.plugins.plugins["inline-diff"];
           qaBarB.view.contentEl.querySelector('[data-decision="reject"]').click();
@@ -512,7 +512,7 @@ try {
         return { bar: rect.toJSON(), width: bar.clientWidth, scroll: bar.scrollWidth, buttons: [...bar.querySelectorAll("button")].map(button => ({ text: button.textContent, rect: button.getBoundingClientRect().toJSON() })) };
       });
       assert.ok(boxes.scroll <= boxes.width + .5, "no horizontal bar overflow");
-      assert.deepEqual(boxes.buttons.map(button => button.text), ["Accept all", "Reject all"]);
+      assert.deepEqual(boxes.buttons.map(button => button.text), ["", "", "Accept all", "Reject all"]);
       for (const { rect } of boxes.buttons) assert.ok(rect.left >= boxes.bar.left && rect.right <= boxes.bar.right + .5 && rect.top >= boxes.bar.top && rect.bottom <= boxes.bar.bottom + .5, "buttons stay in their owning bar");
       const layout = await bounds("live"); await page.locator(".inline-diff-review-bar button").first().hover(); equalBounds(layout, await bounds("live"));
     });

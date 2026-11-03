@@ -29,7 +29,9 @@ Hover a rendered change block to reveal check/X icon buttons at its top right. T
 
 For keyboard review, focus the comparison and press Enter or Space to reach the icon buttons. When a block contains several changes, floating numbered anchors appear on hover or keyboard focus for independent decisions, including ambiguous visual matches. Escape returns to the anchor. Commands in the command palette also accept/reject the current change or all changes, and navigate between changes. Assign hotkeys through Obsidian's normal Hotkeys settings.
 
-Each note pane shows a review bar above its title when changes are pending. The bar stays visible while you scroll and counts proposals in that pane's note. In Source and Live Preview, **Accept all** and **Reject all** resolve those proposals in one undoable action. Reading and read-only panes show the count only. Split panes and popouts have their own bars; embedded notes and hover previews do not.
+Each note pane shows a review bar above its title when changes are pending. The bar stays visible while you scroll and counts proposals in that pane's note. **↑ Previous change** and **↓ Next change** scroll between proposals in Source, Live Preview, and Reading, wrapping at either end. The arrows are disabled when only one change remains. Navigation starts from the visible position, then steps through individual proposals; scrolling manually resets the starting point. It preserves your cursor and selection and keeps Live Preview comparisons rendered. Keyboard users can Tab to an arrow and press Enter or Space; a screen reader announces the selected change.
+
+In Source and Live Preview, **Accept all** and **Reject all** resolve proposals in one undoable action. Reading and read-only panes show the count and navigation arrows. Split panes and popouts have their own bars; embedded notes and hover previews do not.
 
 Every review action uses native editor history. One undo restores the proposal. Changed or stale targets are refused so an action cannot overwrite a newer edit.
 
@@ -76,7 +78,7 @@ The runner launches a separate app profile, verifies its disposable-vault identi
 
 Use `OBSIDIAN_EXECUTABLE` to select a different app binary. The default is the standard macOS application location. Run the matrix or interaction suite separately with `npm run test:obsidian:matrix` and `npm run test:obsidian:interactions`. Diagnostic output and screenshots go into ignored `.qa/` files.
 
-See [testing details](CONTRIBUTING.md), the [coverage matrix](docs/coverage.md), the [original verification report](docs/test-report.md), [pinned review-bar verification](docs/pinned-review-bar-testing.md), and [rendered-spacing verification](docs/rendered-spacing-testing.md).
+See [testing details](CONTRIBUTING.md), the [coverage matrix](docs/coverage.md), the [original verification report](docs/test-report.md), [pinned review-bar verification](docs/pinned-review-bar-testing.md), [rendered-spacing verification](docs/rendered-spacing-testing.md), and [change-navigation verification](docs/navigation-testing.md).
 
 ## Releases
 

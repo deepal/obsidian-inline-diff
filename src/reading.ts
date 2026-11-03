@@ -19,6 +19,7 @@ interface ReadingState {
 
 export class ReadingCoordinator extends Component {
   private states = new Map<HTMLElement, ReadingState>();
+  private pendingSections = new Map<HTMLElement, (state: ReadingState) => void>();
   private stopped = false;
   constructor(private plugin: InlineDiffPlugin) { super(); }
 
@@ -29,7 +30,18 @@ export class ReadingCoordinator extends Component {
     const child = new MarkdownRenderChild(element);
     let frame: number | null = null;
     let state: ReadingState | undefined;
+    const attach = (current: ReadingState) => {
+      const fresh = context.getSectionInfo(element);
+      if (!fresh) return;
+      state = current;
+      state.sections.set(element, { element, info: () => context.getSectionInfo(element) });
+      this.pendingSections.delete(element);
+    };
     child.onload = () => {
+      if (this.stopped) return;
+      // Native preview can run postprocessors while sections are detached.
+      // Keep their source mapping until virtualization attaches them later.
+      this.pendingSections.set(element, attach);
       frame = element.win.requestAnimationFrame(() => {
         frame = null;
         if (this.stopped || !element.isConnected || element.closest(".inline-diff-review")) return;
@@ -48,13 +60,12 @@ export class ReadingCoordinator extends Component {
           this.states.set(root, state);
           observer.observe(root, { childList: true, subtree: true });
         }
-        const fresh = context.getSectionInfo(element);
-        if (!fresh) return;
-        state.sections.set(element, { element, info: () => context.getSectionInfo(element) });
+        attach(state);
         this.schedule(state);
       });
     };
     child.onunload = () => {
+      this.pendingSections.delete(element);
       this.plugin.scheduleReviewBars();
       if (frame !== null) element.win.cancelAnimationFrame(frame);
       if (!state) return;
@@ -82,6 +93,9 @@ export class ReadingCoordinator extends Component {
     // editor-change. Count the refreshed source once the native renderer runs.
     this.plugin.scheduleReviewBars();
     if (this.stopped || !state.root.isConnected) { this.dispose(state); return; }
+    for (const [element, attach] of this.pendingSections) {
+      if (element.isConnected && (element.closest(".markdown-embed-content") ?? element.closest(".markdown-reading-view .markdown-preview-view")) === state.root) attach(state);
+    }
     const sections = [...state.sections.values()].filter(section => section.element.isConnected).flatMap(section => {
       const info = section.info();
       return info ? [{ element: section.element, ...info, text: info.text.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n") }] : [];
@@ -148,6 +162,7 @@ export class ReadingCoordinator extends Component {
 
   onunload(): void {
     this.stopped = true;
+    this.pendingSections.clear();
     for (const state of this.states.values()) this.dispose(state);
   }
 }

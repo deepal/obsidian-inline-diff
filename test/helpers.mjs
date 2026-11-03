@@ -15,6 +15,8 @@ export class PluginSettingTab {}
 export class Scope { register() {} }
 export class MarkdownRenderChild extends Component {constructor(el){super();this.containerEl=el;}}
 export class MarkdownView {}
+export class Notice { constructor(message) { globalThis.__notices?.push(message); } }
+export const editorInfoField = {}, editorLivePreviewField = {};
 export const MarkdownRenderer={async render(app,md,el,path,owner){if(globalThis.__renderGate)await globalThis.__renderGate;el.innerHTML=md;}};
 export function setIcon(el,icon){el.innerHTML='<svg data-icon="'+icon+'"></svg>';}
 export function setTooltip(el,text){el.title=text;}

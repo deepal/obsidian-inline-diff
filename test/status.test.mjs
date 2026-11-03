@@ -17,6 +17,37 @@ function snapshot(source = "A {~~old~>new~~} sentence.", overrides = {}) {
   return { view: {}, file: { path: "Review.md" }, source, pending: parseNote(source).proposals.length, editable: true, busy: false, ...overrides };
 }
 
+for (const editable of [true, false]) for (const count of [0, 1, 2, 12]) test(`${editable ? "editable" : "Reading/read-only"} navigation with ${count} proposals`, t => {
+  const f = setup(t);
+  f.set(snapshot(Array.from({ length: count }, (_, index) => `{++change ${index}++}`).join("\n\n"), { editable }));
+  f.status.refresh();
+  assert.equal(f.element.hidden, count === 0);
+  const arrows = [...f.element.querySelectorAll("[data-direction]")];
+  assert.equal(arrows.length, count ? 2 : 0);
+  assert.ok(arrows.every(button => button.disabled === (count <= 1)));
+  assert.deepEqual(arrows.map(button => button.getAttribute("aria-label")), count ? ["Previous change", "Next change"] : []);
+  assert.equal(f.element.querySelectorAll("[data-decision]").length, count && editable ? 2 : 0);
+});
+
+test("navigation is pane-bound, validates snapshots, announces targets and disposes its controller", t => {
+  const document = dom(), host = document.window.document.body.createDiv();
+  let current = snapshot("{++one++} and {++two++}", { editable: false }), refresh, disposed = false;
+  const calls = [], navigator = { busy: false, message: "", load() {}, unload() { disposed = true; }, refresh() {}, go(direction) { calls.push([current, direction]); } };
+  const status = new ReviewBar(host, () => current, () => assert.fail("Reading must not resolve"), () => {}, (_read, changed) => { refresh = changed; return navigator; });
+  status.load(); t.after(() => { status.unload(); document.window.close(); }); status.refresh();
+  const next = host.querySelector('[data-direction="1"]');
+  next.click(); assert.deepEqual(calls, [[current, 1]]);
+  next.dispatchEvent(new document.window.KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+  next.dispatchEvent(new document.window.KeyboardEvent("keydown", { key: " ", bubbles: true, repeat: true }));
+  next.dispatchEvent(new document.window.KeyboardEvent("keydown", { key: "Enter", bubbles: true, isComposing: true }));
+  assert.equal(calls.length, 2, "one keyboard activation, excluding repeat/IME events");
+  navigator.busy = true; refresh(); assert.equal(next.disabled, true); next.click(); assert.equal(calls.length, 2);
+  navigator.busy = false; navigator.message = "Change 2 of 2"; refresh();
+  assert.equal(host.querySelector(".inline-diff-navigation-status").textContent, "Change 2 of 2");
+  current = { ...current, source: "Agent replacement." }; next.click(); assert.equal(calls.length, 2);
+  status.unload(); next.click(); assert.equal(calls.length, 2); assert.equal(disposed, true);
+});
+
 test("status item is absent for no selected note or no proposals, with singular/plural counts", t => {
   const f = setup(t);
   f.status.refresh(); assert.equal(f.element.hidden, true);
@@ -36,7 +67,7 @@ test("status counts complete valid proposals, excluding literal and malformed ma
 
 test("status buttons resolve the displayed note and retain accessible bulk labels", t => {
   const f = setup(t), current = snapshot(); f.set(current); f.status.refresh();
-  const buttons = [...f.element.querySelectorAll("button")];
+  const buttons = [...f.element.querySelectorAll("[data-decision]")];
   assert.deepEqual(buttons.map(b => b.getAttribute("aria-label")), ["Accept all changes in this note", "Reject all changes in this note"]);
   buttons[0].click(); buttons[1].click();
   assert.deepEqual(f.calls, [[current, "accept"], [current, "reject"]]);
@@ -44,25 +75,26 @@ test("status buttons resolve the displayed note and retain accessible bulk label
 
 test("Reading removes action elements and listeners rather than hiding them", t => {
   const f = setup(t), current = snapshot(); f.set(current); f.status.refresh();
-  const oldButtons = [...f.element.querySelectorAll("button")];
+  const oldButtons = [...f.element.querySelectorAll("[data-decision]")];
   f.set({ ...current, editable: false }); f.status.refresh();
   assert.equal(f.element.hidden, false);
-  assert.equal(f.element.querySelectorAll("button,.inline-diff-review-bar-actions").length, 0);
+  assert.equal(f.element.querySelectorAll("[data-decision],.inline-diff-review-bar-actions").length, 0);
+  assert.equal(f.element.querySelectorAll("[data-direction]").length, 2);
   for (const button of oldButtons) button.click();
   assert.deepEqual(f.calls, []);
   f.set(current); f.status.refresh();
-  assert.equal(f.element.querySelectorAll("button").length, 2);
+  assert.equal(f.element.querySelectorAll("button").length, 4);
 });
 
-test("resolution busy state disables both buttons without recreating focused controls", t => {
+test("resolution busy state disables review controls without recreating focused controls", t => {
   const f = setup(t), current = snapshot(); f.set(current); f.status.refresh();
-  const button = f.element.querySelector("button"); button.focus();
+  const button = f.element.querySelector("[data-decision]"); button.focus();
   f.set({ ...current, busy: true }); f.status.refresh();
   assert.equal(f.element.getAttribute("aria-busy"), "true");
   assert.ok([...f.element.querySelectorAll("button")].every(b => b.disabled));
   button.click(); assert.deepEqual(f.calls, []);
   f.set(current); f.status.refresh();
-  assert.equal(f.element.querySelector("button"), button);
+  assert.equal(f.element.querySelector("[data-decision]"), button);
   assert.equal(button.ownerDocument.activeElement, button);
   assert.equal(button.disabled, false);
 });
@@ -70,13 +102,13 @@ test("resolution busy state disables both buttons without recreating focused con
 for (const change of ["view", "file", "source", "editable", "busy"]) test(`status refuses a stale ${change} before activation`, t => {
   const f = setup(t), current = snapshot(); f.set(current); f.status.refresh();
   f.set({ ...current, [change]: { view: {}, file: { path: "Other.md" }, source: "Agent update.", editable: false, busy: true }[change] });
-  f.element.querySelector("button").click();
+  f.element.querySelector("[data-decision]").click();
   assert.deepEqual(f.calls, []);
 });
 
 test("an empty or closed note removes previous mutation handlers", t => {
   const f = setup(t); f.set(snapshot()); f.status.refresh();
-  const button = f.element.querySelector("button");
+  const button = f.element.querySelector("[data-decision]");
   f.set(null); f.status.refresh(); button.click();
   assert.equal(f.element.hidden, true); assert.equal(f.element.querySelectorAll("button").length, 0);
   assert.deepEqual(f.calls, []);
@@ -92,7 +124,7 @@ test("coordinator coalesces updates and cancels work and handlers on unload", as
   for (let i = 0; i < 20; i++) coordinator.schedule();
   await new Promise(resolve => setTimeout(resolve, 10));
   assert.equal(reads, 1);
-  const button = host.querySelector("button");
+  const button = host.querySelector("[data-decision]");
   coordinator.schedule(); coordinator.unload(); button.click();
   await new Promise(resolve => setTimeout(resolve, 10));
   assert.equal(reads, 1); assert.deepEqual(calls, []);
@@ -120,7 +152,7 @@ test("coordinator binds separate note panes and removes closed views without dup
   assert.equal(doc.querySelectorAll(".inline-diff-review-bar").length, 2);
   views[1].contentEl.querySelector('[data-decision="accept"]').click();
   assert.equal(calls[0][0].view, views[1]);
-  const closed = views.pop(), button = closed.contentEl.querySelector("button");
+  const closed = views.pop(), button = closed.contentEl.querySelector("[data-decision]");
   coordinator.refresh(); button.click();
   assert.equal(calls.length, 1);
   assert.equal(closed.contentEl.querySelector(".inline-diff-review-bar"), null);

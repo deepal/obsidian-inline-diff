@@ -55,6 +55,7 @@ module.exports = class extends o.Plugin {
   document.querySelectorAll('.inline-diff-qa-oracle').forEach(root=>root.remove());
   globalThis.inlineDiffQa = {
    version: o.apiVersion,
+   supportsApi(version) { return o.requireApiVersion(version); },
    frontmatterInfo(text) { return o.getFrontMatterInfo(text); },
    frontmatterRule() { return o.getFrontMatterInfo.toString(); },
    async save(view) {
@@ -143,6 +144,7 @@ module.exports = class extends o.Plugin {
    },
    undo(view) { return view.editor.undo(); },
    redo(view) { return view.editor.redo(); },
+   historyDepth(view) { const c=require('@codemirror/commands'); return {undo:c.undoDepth(view.editor.cm.state),redo:c.redoDepth(view.editor.cm.state)}; },
   };
  }
  onunload() { delete globalThis.inlineDiffQa; }

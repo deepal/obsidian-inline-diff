@@ -7,6 +7,8 @@ import { applyColours } from "./settings";
 import type InlineDiffPlugin from "./main";
 
 export const refreshDiffs = StateEffect.define<null>();
+/** Scroll-only review navigation must not turn the remembered caret into editing intent. */
+export const revealComparisons = StateEffect.define<null>();
 const focusDiffs = StateEffect.define<boolean>();
 interface Model { note: ParsedNote; groups: ReviewGroup[]; decorations: DecorationSet; focused: boolean; revealSelection: boolean }
 
@@ -88,6 +90,7 @@ export function editorExtension(plugin: InlineDiffPlugin) {
         const editing = ["input", "delete", "undo", "redo"].some(event => transaction.isUserEvent(event));
         return build(transaction.state, note, [], owned, focused, editing);
       }
+      if (transaction.effects.some(effect => effect.is(revealComparisons))) return build(transaction.state, model.note, model.groups, owned, focused, false);
       if (transaction.selection || focus || transaction.effects.some(effect => effect.is(refreshDiffs)) || transaction.reconfigured) return build(transaction.state, model.note, model.groups, owned, focused, transaction.selection ? true : model.revealSelection);
       return model;
     },

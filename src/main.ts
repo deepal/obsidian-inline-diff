@@ -10,6 +10,7 @@ import { ReadingCoordinator } from "./reading";
 import { applyColours, defaults, DiffSettingTab, normalizeSettings, type DiffSettings } from "./settings";
 import { FormatPreserver } from "./formats";
 import { ReviewBarCoordinator, type BulkReviewTarget, type ReviewSnapshot } from "./status";
+import { ChangeNavigator } from "./navigation";
 
 interface CellOwner { tableCell: unknown; destroyTableCell: () => void }
 function isCellOwner(value: unknown): value is CellOwner {
@@ -19,7 +20,7 @@ function isCellOwner(value: unknown): value is CellOwner {
 export default class InlineDiffPlugin extends Plugin {
   settings: DiffSettings = { ...defaults };
   settingsVersion = 0;
-  readonly buildIdentity = `inline-diff:${this.manifest.version}:native-block-spacing`;
+  readonly buildIdentity = `inline-diff:${this.manifest.version}:change-navigation`;
   private overlays = new Map<Document, ReviewOverlay>();
   private reading!: ReadingCoordinator;
   private formats!: FormatPreserver;
@@ -43,7 +44,7 @@ export default class InlineDiffPlugin extends Plugin {
     this.reviewBars = this.addChild(new ReviewBarCoordinator(this.app.workspace.containerEl.win, () => this.markdownViews(), view => this.readReviewSnapshot(view), (target, decision) => this.resolveAll(target, decision), view => {
       const cm = this.editorView(view.editor);
       if (cm?.dom.isConnected && !cm.dom.ownerDocument.defaultView?.closed) cm.requestMeasure();
-    }));
+    }, (read, changed) => new ChangeNavigator(read, view => this.editorView(view.editor), changed), this.app));
     for (const decision of ["accept", "reject"] as const) {
       this.addCommand({ id: `${decision}-change`, name: `${decision === "accept" ? "Accept" : "Reject"} current change`, checkCallback: checking => {
         const view = this.editableView();

@@ -1,0 +1,105 @@
+{
+  "date": "2026-11-03T00:30:44.679Z",
+  "build": {
+    "identity": "inline-diff:1.2.2:change-navigation",
+    "sha256": {
+      "main.js": "0e6134d65e124aeeb5e7996729828e5f8093ebf4a547528cbc349f922c1ecdf0",
+      "manifest.json": "839ef6ed8c8f42cf602eca6be0ab25105647cc6c7105a07c627b03a1a0de4a82",
+      "styles.css": "2517135120cc969d49785d3824f6afcf42f0763f296b771b2879f89d117323c6"
+    }
+  },
+  "runtime": {
+    "obsidian": "1.15.0",
+    "electron": "43.8.4",
+    "chromium": "150.0.7871.250",
+    "node": "24.22.1"
+  },
+  "themes": {
+    "Primary": "2.10.0",
+    "Minimal": "9.1.4",
+    "Blue Topaz": "2026102001"
+  },
+  "unit": {
+    "passed": 591,
+    "failed": 0
+  },
+  "matrix": {
+    "passed": 1341,
+    "failures": [],
+    "errors": []
+  },
+  "interactions": {
+    "passed": 415,
+    "errors": []
+  },
+  "navigation": {
+    "passed": 64,
+    "scenarios": [
+      "source/0 changes: availability, order, wrap, focus and unchanged document",
+      "source/1 changes: availability, order, wrap, focus and unchanged document",
+      "source/2 changes: availability, order, wrap, focus and unchanged document",
+      "source/12 changes: availability, order, wrap, focus and unchanged document",
+      "source/manual scrolling resets the viewport origin",
+      "source/shared comparison steps through identical proposals independently",
+      "source/external updates cover 0\u21921\u21922\u2192many\u21922\u21921\u21920",
+      "source/navigation after a review preserves BOM/CRLF bytes and renderer offsets",
+      "source/folded headings reveal the target",
+      "source/literal and malformed markers stay outside navigation",
+      "source/read-only panes retain working arrows without mutation controls",
+      "source/navigation preserves a nonempty selection inside a proposal",
+      "source/manual scroll cancels pending navigation",
+      "source/mode change cancels pending navigation",
+      "source/plugin reload cancels pending navigation",
+      "source/closing the pane during navigation cancels pending work",
+      "source/accept updates arrows through decisions and undo/redo",
+      "source/reject updates arrows through decisions and undo/redo",
+      "source/light/narrow panel and keyboard navigation",
+      "source/dark/narrow panel and keyboard navigation",
+      "source/split panes navigate independently",
+      "source/popout arrows own their window and clean up on close",
+      "live/0 changes: availability, order, wrap, focus and unchanged document",
+      "live/1 changes: availability, order, wrap, focus and unchanged document",
+      "live/2 changes: availability, order, wrap, focus and unchanged document",
+      "live/12 changes: availability, order, wrap, focus and unchanged document",
+      "live/manual scrolling resets the viewport origin",
+      "live/shared comparison steps through identical proposals independently",
+      "live/external updates cover 0\u21921\u21922\u2192many\u21922\u21921\u21920",
+      "live/navigation after a review preserves BOM/CRLF bytes and renderer offsets",
+      "live/folded headings reveal the target",
+      "live/literal and malformed markers stay outside navigation",
+      "live/read-only panes retain working arrows without mutation controls",
+      "live/navigation preserves a nonempty selection inside a proposal",
+      "live/manual scroll cancels pending navigation",
+      "live/mode change cancels pending navigation",
+      "live/plugin reload cancels pending navigation",
+      "live/closing the pane during navigation cancels pending work",
+      "live/accept updates arrows through decisions and undo/redo",
+      "live/reject updates arrows through decisions and undo/redo",
+      "live/light/narrow panel and keyboard navigation",
+      "live/dark/narrow panel and keyboard navigation",
+      "live/split panes navigate independently",
+      "live/popout arrows own their window and clean up on close",
+      "reading/0 changes: availability, order, wrap, focus and unchanged document",
+      "reading/1 changes: availability, order, wrap, focus and unchanged document",
+      "reading/2 changes: availability, order, wrap, focus and unchanged document",
+      "reading/12 changes: availability, order, wrap, focus and unchanged document",
+      "reading/manual scrolling resets the viewport origin",
+      "reading/shared comparison steps through identical proposals independently",
+      "reading/external updates cover 0\u21921\u21922\u2192many\u21922\u21921\u21920",
+      "reading/navigation after a review preserves BOM/CRLF bytes and renderer offsets",
+      "reading/folded headings reveal the target",
+      "reading/literal and malformed markers stay outside navigation",
+      "reading/manual scroll cancels pending navigation",
+      "reading/mode change cancels pending navigation",
+      "reading/plugin reload cancels pending navigation",
+      "reading/closing the pane during navigation cancels pending work",
+      "reading/accept updates arrows through decisions and undo/redo",
+      "reading/reject updates arrows through decisions and undo/redo",
+      "reading/light/narrow panel and keyboard navigation",
+      "reading/dark/narrow panel and keyboard navigation",
+      "reading/split panes navigate independently",
+      "reading/popout arrows own their window and clean up on close"
+    ],
+    "errors": []
+  }
+}

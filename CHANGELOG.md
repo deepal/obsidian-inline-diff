@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/deepal/obsidian-inline-diff/compare/1.2.2...1.3.0) (2026-11-03)
+
+### Features
+
+* add previous and next change buttons to review bars ([690422a](https://github.com/deepal/obsidian-inline-diff/commit/690422a0945a5cc10cfb252f7a2609498ca294c1))
+
 ## [1.2.2](https://github.com/deepal/obsidian-inline-diff/compare/1.2.1...1.2.2) (2026-11-01)
 
 ### Bug Fixes

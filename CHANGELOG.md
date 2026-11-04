@@ -1,3 +1,9 @@
+## [1.3.2](https://github.com/deepal/obsidian-inline-diff/compare/1.3.1...1.3.2) (2026-11-04)
+
+### Bug Fixes
+
+* preserve native styles and spacing around inline comparisons ([c1e7786](https://github.com/deepal/obsidian-inline-diff/commit/c1e7786040ed539f1b3215edf10145905d24f933))
+
 ## [1.3.1](https://github.com/deepal/obsidian-inline-diff/compare/1.3.0...1.3.1) (2026-11-04)
 
 ### Bug Fixes

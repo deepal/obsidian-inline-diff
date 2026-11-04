@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/deepal/obsidian-inline-diff/compare/1.3.0...1.3.1) (2026-11-04)
+
+### Bug Fixes
+
+* render separate comparisons at proposal boundaries ([4f01ba0](https://github.com/deepal/obsidian-inline-diff/commit/4f01ba0696e087fc5632569be72a72c2ee24fa05))
+
 ## [1.3.0](https://github.com/deepal/obsidian-inline-diff/compare/1.2.2...1.3.0) (2026-11-03)
 
 ### Features

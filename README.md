@@ -2,9 +2,9 @@
 
 Review an agent's proposed changes to an Obsidian note, then accept or reject each edit.
 
-![Inline Diff showing pending changes, rendered comparisons, and accept or reject controls](docs/images/readme-pending-changes.png)
+![Inline Diff showing pending changes, individual inline changes, navigation, and accept or reject controls](docs/images/granular-live.png)
 
-Requires desktop Obsidian **1.14.5 or newer**. The tested baseline is 1.14.5 on macOS. Mobile support is not included.
+Requires desktop Obsidian **1.14.5 or newer**. The original baseline was 1.14.5; granular rendering is verified on 1.15.0 on macOS. Mobile support is not included.
 
 ```markdown
 The timeout is {~~10~>30~~} seconds.
@@ -22,24 +22,32 @@ The timeout is {~~10~>30~~} seconds.
 | View | Behaviour |
 | --- | --- |
 | Source | Editable markers with coloured additions/deletions and hover actions. |
-| Live Preview | Stacked, rendered removals/additions with hover actions. Deliberately placing the text cursor inside a changed block reveals its source while editing. Agent edits render immediately, including while the editor is unfocused. |
-| Reading | Rendered comparisons with no review actions or mutation commands. |
+| Live Preview | Stacked Before/After comparisons at each proposal, including inside table cells and callout titles. Deliberately placing the text cursor inside a changed block reveals its source while editing. Agent edits render immediately, including while the editor is unfocused. |
+| Reading | The same local Before/After comparisons, with navigation and no mutation controls. |
 
-Hover a rendered change block to reveal check/X icon buttons at its top right. The buttons resolve the complete proposal and stay in the same place when you move over individual highlighted words. The toolbar floats over the note without moving text. Comparisons have no title or visible Before/After labels; the colours and side borders distinguish the alternatives, with accessible labels retained. A source section appears only for proposals whose changes are hidden by rendering, such as an unchanged link label pointing to a new destination.
+Each marker defines the complete comparison. Marking a paragraph shows the complete Before paragraph above the complete After paragraph, with changed words highlighted within each version. Marking a phrase shows only that phrase in each panel; unmarked text flows before and after the comparison.
 
-For keyboard review, focus the comparison and press Enter or Space to reach the icon buttons. When a block contains several changes, floating numbered anchors appear on hover or keyboard focus for independent decisions, including ambiguous visual matches. Escape returns to the anchor. Commands in the command palette also accept/reject the current change or all changes, and navigate between changes. Assign hotkeys through Obsidian's normal Hotkeys settings.
+Comparisons use full-width stacked panels inside their containing cell, list item or callout. Ordinary cell and header edits keep one outer table. Marking an entire table, list or callout intentionally shows both complete versions. Multiple proposals in the same cell remain separate comparisons. Invisible changes, such as link destinations or comments, include local Before/After Markdown evidence. Both sides stay expanded; there are no numbered proposal selectors.
 
-Each note pane shows a review bar above its title when changes are pending. The bar stays visible while you scroll and counts proposals in that pane's note. **↑ Previous change** and **↓ Next change** scroll between proposals in Source, Live Preview, and Reading, wrapping at either end. The arrows are disabled when only one change remains. Navigation starts from the visible position, then steps through individual proposals; scrolling manually resets the starting point. It preserves your cursor and selection and keeps Live Preview comparisons rendered. Keyboard users can Tab to an arrow and press Enter or Space; a screen reader announces the selected change.
+Each stored proposal is one decision and one navigation stop, even when several words differ. Hover either side to reveal its floating Accept/Reject controls. For keyboard review, Tab to the comparison and press Enter or Space to reach the controls. Escape restores focus. Native links keep their normal keyboard behaviour. Command-palette commands and their hotkeys are unchanged.
+
+Each note pane shows a review bar above its title when changes are pending. The bar stays visible while you scroll and counts proposals in that pane's note. **↑ Previous change** and **↓ Next change** scroll between proposals in Source, Live Preview, and Reading, wrapping at either end. The arrows are disabled when only one change remains. Navigation starts from the visible position, then steps through individual proposals; scrolling manually resets the starting point. It scrolls to the comparison pair for each proposal, including horizontally inside a wide table. A brief theme-accent outline marks the destination. It preserves your cursor, selection and undo history and keeps Live Preview comparisons rendered. Keyboard users can Tab to an arrow and press Enter or Space; a screen reader announces the selected change.
 
 In Source and Live Preview, **Accept all** and **Reject all** resolve proposals in one undoable action. Reading and read-only panes show the count and navigation arrows. Split panes and popouts have their own bars; embedded notes and hover previews do not.
 
 Every review action uses native editor history. One undo restores the proposal. Changed or stale targets are refused so an action cannot overwrite a newer edit.
 
-Settings expose independent addition/deletion text and background colours, with theme-aware defaults and a reset button. Comparison bodies are display-only, including task checkboxes and generated Bases views. Links, callout folding, and normal media display remain available.
+Settings expose independent addition/deletion text and background colours, with theme-aware defaults and a reset button. Comparison bodies are display-only, including task checkboxes and generated Bases views. Links and normal media display remain available. Pending changes inside folded callouts are revealed for review.
 
 Rendered comparisons retain native heading, paragraph, and list spacing, including custom line heights. Code and preformatted content retain their native whitespace rules. Math and SVG changes colour the existing rendered elements without inserting spans into their glyph layouts.
 
 See the [agent syntax guide](docs/agent-syntax.md) for structural changes, literal constructs, escaping, and exact newline rules.
+
+## Agent skill
+
+The bundled [Obsidian Inline Diff skill](skills/obsidian-inline-diff/SKILL.md) teaches agents to write reviewable proposals at the intended boundary: separate cell, header, list and callout edits stay local, while a marked paragraph or whole structure keeps complete Before/After versions. It also covers escaping, literal constructs, exact source preservation and validating both outcomes.
+
+Copy `skills/obsidian-inline-diff/` into your agent's skill directory (for example, `~/.agents/skills/`), then invoke `$obsidian-inline-diff` or ask the agent to load its `SKILL.md` before proposing edits. The syntax remains `{++new++}`, `{--old--}` and `{~~old~>new~~}`; no new marker form is required.
 
 ## Build and deploy locally
 
@@ -78,7 +86,7 @@ The runner launches a separate app profile, verifies its disposable-vault identi
 
 Use `OBSIDIAN_EXECUTABLE` to select a different app binary. The default is the standard macOS application location. Run the matrix or interaction suite separately with `npm run test:obsidian:matrix` and `npm run test:obsidian:interactions`. Diagnostic output and screenshots go into ignored `.qa/` files.
 
-See [testing details](CONTRIBUTING.md), the [coverage matrix](docs/coverage.md), the [original verification report](docs/test-report.md), [pinned review-bar verification](docs/pinned-review-bar-testing.md), [rendered-spacing verification](docs/rendered-spacing-testing.md), and [change-navigation verification](docs/navigation-testing.md).
+See [testing details](CONTRIBUTING.md), the [coverage matrix](docs/coverage.md), [granular rendering verification](docs/granular-testing.md), the [original verification report](docs/test-report.md), [pinned review-bar verification](docs/pinned-review-bar-testing.md), [rendered-spacing verification](docs/rendered-spacing-testing.md), and [change-navigation verification](docs/navigation-testing.md).
 
 ## Releases
 

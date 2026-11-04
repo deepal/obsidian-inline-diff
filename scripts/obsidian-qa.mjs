@@ -1,3 +1,4 @@
+import { projectRendered, canonical } from "./unified-oracle.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -11,26 +12,6 @@ page.on("pageerror", error => errors.push(error.message));
 page.on("console", message => { if (message.type() === "error" && /inline.diff|plugin:inline-diff/i.test(message.text())) errors.push(message.text()); });
 
 // Remove only plugin decorations and host-generated nonsemantic controls.
-function canonical(root) {
-  function walk(node) {
-    if (node.nodeType === 3) return node.textContent;
-    if (node.nodeType !== 1) return "";
-    const el = node;
-    if (el.matches(".inline-diff-empty,.copy-code-button,.footnote-backref,.collapse-indicator,.callout-icon,.callout-fold")) return "";
-    if (el.matches(".inline-diff-changed")) return [...el.childNodes].map(walk).join("");
-    if (el.matches(".pdf-embed")) return `<pdf alt=${JSON.stringify(el.getAttribute("alt"))}></pdf>`;
-    if (el.matches("svg")) return `<svg>${[...el.querySelectorAll("text,foreignObject")].map(e => e.textContent).join("|")}</svg>`;
-    if (el.matches(".math")) return `<math>${el.getAttribute("data-math") || el.textContent}</math>`;
-    const attrs = ["href", "data-href", "data-callout", "data-src", "src", "alt", "align", "type", "width", "height", "title", "checked"].filter(name => el.hasAttribute(name)).map(name => {
-      let value = el.getAttribute(name);
-      if (name === "href" && el.closest(".footnotes,.footnote-ref")) value = "#footnote";
-      return ` ${name}=${JSON.stringify(value)}`;
-    }).join("");
-    const children = [...el.childNodes].map(walk).join("");
-    return `<${el.tagName.toLowerCase()}${attrs}>${children}</${el.tagName.toLowerCase()}>`;
-  }
-  return [...root.childNodes].map(walk).join("").replace(/>\s+</g, "><").replace(/\s+/g, " ").trim();
-}
 
 try {
   await installOracle(session);
@@ -64,19 +45,20 @@ try {
           const comparison = page.locator(`${scope} .inline-diff-review`).first();
           assert.equal(await page.locator(`${scope} .inline-diff-review`).count(), 1);
           const body = text => text.replace(/^Intro\.\n\n/, "").replace(/\n\nTail\.\n$/, "").replace(/^\nTail\.\n$/, "");
-          const actual = await comparison.evaluate(async (element, { before, after, canonicalSource }) => {
+          const actual = await comparison.evaluate(async (element, { before, after, canonicalSource, projectSource }) => {
             const normalize = (0, eval)(`(${canonicalSource})`);
             const results = [];
-            for (const [selector, markdown] of [[".inline-diff-before .inline-diff-content", before], [".inline-diff-after .inline-diff-content", after]]) {
+            const project = (0, eval)(`(${projectSource})`);
+            for (const [side, markdown] of [["before", before], ["after", after]]) {
               const oracle = await inlineDiffQa.render(markdown);
-              results.push({ actual: normalize(element.querySelector(selector)), expected: normalize(oracle.root) });
+              results.push({ actual: normalize(project(element.querySelector(".inline-diff-content"), side)), expected: normalize(oracle.root) });
               oracle.dispose();
             }
             return results;
-          }, { before: body(fixture.before), after: body(fixture.after), canonicalSource: canonical.toString() });
+          }, { before: body(fixture.before), after: body(fixture.after), canonicalSource: canonical.toString(), projectSource: projectRendered.toString() });
           for (const [index, result] of actual.entries()) assert.equal(result.actual, result.expected, index ? "After native rendering" : "Before native rendering");
           if (mode === "reading") {
-            assert.equal(await comparison.locator("[data-decision],.inline-diff-proposal-anchor,.inline-diff-source-entry[tabindex]").count(), 0);
+            assert.equal(await comparison.locator("[data-decision],.inline-diff-hunk-anchor[tabindex],.inline-diff-source-entry[tabindex]").count(), 0);
             await comparison.hover();
             assert.equal(await page.locator(".inline-diff-toolbar:visible").count(), 0);
             for (const command of ["accept-change", "reject-change", "accept-all-changes", "reject-all-changes"]) assert.equal(await page.evaluate(command => app.commands.commands[`inline-diff:${command}`].checkCallback(true), command), false);
@@ -90,7 +72,7 @@ try {
               await page.waitForSelector(".markdown-source-view .inline-diff-review[data-inline-diff-ready=true]", { timeout: 8000 });
               await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
             }
-            const selector = mode === "source" ? ".cm-content .inline-diff-source-mark" : ".markdown-source-view .inline-diff-proposal-anchor";
+            const selector = mode === "source" ? ".cm-content .inline-diff-source-mark" : ".markdown-source-view .inline-diff-hunk-anchor[tabindex]";
             const target = page.locator(selector).first();
             await target.waitFor({ timeout: 4000 }); await page.mouse.move(5, 5); await target.hover();
             assert.equal(await page.evaluate(() => app.workspace.activeLeaf.view.editor.getValue()), fixture.source, "hover preserves the fixture buffer");

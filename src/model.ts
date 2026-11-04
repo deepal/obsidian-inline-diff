@@ -1,4 +1,5 @@
 import MarkdownIt from "markdown-it";
+import { diffArrays } from "diff";
 
 export type Decision = "accept" | "reject";
 export interface Span { from: number; to: number }
@@ -16,6 +17,50 @@ export interface ParsedNote { source: string; frontmatterEnd: number; proposals:
 export interface Mapping extends Span { sourceFrom: number; sourceTo: number; proposalId?: string }
 export interface Projection { text: string; mappings: Mapping[] }
 export interface ReviewGroup extends Span { id: string; proposals: Proposal[]; before: string; after: string }
+export interface ReviewLocation { line: number; path: string[]; row?: number; column?: number }
+export interface ReviewHunk { id: string; proposalId: string; before: Span; after: Span; beforeLocation: ReviewLocation; afterLocation: ReviewLocation }
+export interface ReviewUnit extends Span { id: string; proposal: Proposal; before: Span; after: Span; hunks: ReviewHunk[] }
+
+/** Container ownership and approval identity are deliberately separate. */
+export function reviewUnits(note: ParsedNote, group: ReviewGroup): ReviewUnit[] {
+  const slice: ParsedNote = { ...note, source: note.source.slice(group.from, group.to), frontmatterEnd: 0,
+    proposals: group.proposals.map(proposal => ({ ...proposal, from: proposal.from - group.from, to: proposal.to - group.from })) };
+  const before = project(slice, "reject"), after = project(slice, "accept");
+  const locate = (text: string) => {
+    const offsets = lineOffsets(text), tokens = markdown.parse(text, {});
+    return (position: number): ReviewLocation => {
+      const line = offsets.findLastIndex(offset => offset <= position), path: string[] = [];
+      let tableStart: number | undefined;
+      for (const token of tokens) if (token.map && token.map[0] <= line && token.map[1] > line) {
+        path.push(`${token.type}:${token.map[0]}`);
+        if (token.type === "table_open") tableStart = token.map[0];
+      }
+      if (tableStart === undefined) return { line, path };
+      const prefix = text.slice(offsets[line], position);
+      let pipes = 0;
+      for (let index = 0; index < prefix.length; index++) if (prefix[index] === "|" && !escaped(prefix, index)) pipes++;
+      return { line, path, row: line - tableStart, column: Math.max(0, pipes - (/^\s*\|/.test(prefix) ? 1 : 0)) };
+    };
+  };
+  const oldLocation = locate(before.text), nextLocation = locate(after.text);
+  const graphemes = (value: string) => [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(value)].map(part => part.segment);
+  return group.proposals.map(proposal => {
+    const old = before.mappings.find(mapping => mapping.proposalId === proposal.id)!;
+    const next = after.mappings.find(mapping => mapping.proposalId === proposal.id)!;
+    const hunks: ReviewHunk[] = [];
+    let oldAt = old.from, nextAt = next.from, current: ReviewHunk | undefined;
+    for (const part of diffArrays(graphemes(proposal.before), graphemes(proposal.after))) {
+      const length = part.value.join("").length;
+      if (part.added || part.removed) {
+        if (!current) { current = { id: `${proposal.id}:${hunks.length}`, proposalId: proposal.id, before: { from: oldAt, to: oldAt }, after: { from: nextAt, to: nextAt }, beforeLocation: oldLocation(oldAt), afterLocation: nextLocation(nextAt) }; hunks.push(current); }
+        if (part.removed) { oldAt += length; current.before.to = oldAt; }
+        else { nextAt += length; current.after.to = nextAt; }
+      } else { oldAt += length; nextAt += length; current = undefined; }
+    }
+    return { id: proposal.id, proposal, from: proposal.from, to: proposal.to,
+      before: { from: old.from, to: old.to }, after: { from: next.from, to: next.to }, hunks };
+  });
+}
 
 const markdown = new MarkdownIt({ html: true });
 const opens = ["{++", "{--", "{~~"];

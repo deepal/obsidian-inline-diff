@@ -29,16 +29,21 @@ async function navigate(direction, index, count, key, scope = ".workspace-leaf.m
   await currentPage.waitForFunction(({ scope, index, count }) => {
     const bar = document.querySelector(`${scope} .inline-diff-review-bar`);
     return bar?.getAttribute("aria-busy") === "false" && bar.querySelector(".inline-diff-navigation-status")?.textContent === `Change ${index} of ${count}`;
-  }, { scope, index, count });
-  assert.equal(await button.evaluate(button => button.ownerDocument.activeElement === button), true, "arrow retains focus");
-  const geometry = await bar.evaluate(bar => {
+  }, { scope, index, count }, { polling: 25 });
+  // Read the short-lived outline and focus in one browser turn. Background
+  // requestAnimationFrame throttling must not outlast its 1.5 second lifetime.
+  const geometry = await bar.evaluate((bar,direction) => {
     const view = bar.parentElement, target = view.querySelector(".inline-diff-navigation-target");
     const surface = target?.closest(".cm-scroller,.markdown-preview-view");
-    if (!target || !surface) return null;
+    if (!target || !surface) {
+      const navigator = [...app.plugins.plugins["inline-diff"].reviewBars.bars.values()].find(candidate => candidate.element === bar)?.navigator;
+      return { missing: true, message: navigator?.message, highlights: navigator?.highlights.map(element => ({ connected: element.isConnected, cls: element.className, id: element.dataset.inlineDiffId })), marks: [...view.querySelectorAll(".inline-diff-source-mark")].map(element => element.dataset.inlineDiffId) };
+    }
     const a = target.getBoundingClientRect(), b = surface.getBoundingClientRect();
-    return { visible: a.bottom > b.top && a.top < b.bottom, offset: a.top - b.top, atBottom: surface.scrollTop + surface.clientHeight >= surface.scrollHeight - 1 };
-  });
-  assert.ok(geometry?.visible, "destination is visible inside its pane");
+    return { focused: bar.ownerDocument.activeElement === bar.querySelector(`[data-direction="${direction}"]`), visible: a.bottom > b.top && a.top < b.bottom, offset: a.top - b.top, atBottom: surface.scrollTop + surface.clientHeight >= surface.scrollHeight - 1 };
+  }, direction);
+  assert.ok(geometry?.visible, `destination is visible inside its pane: ${JSON.stringify({index,count,key,geometry})}`);
+  assert.equal(geometry.focused, true, "arrow retains focus");
   assert.ok(Math.abs(geometry.offset - 16) <= 1 || geometry.atBottom && geometry.offset >= 16, `destination has top margin or is clamped at the document end: ${JSON.stringify(geometry)}`);
 }
 
@@ -53,7 +58,7 @@ try {
   await installOracle(session);
   await page.setViewportSize({ width: 1280, height: 900 });
   for (const mode of ["source", "live", "reading"].filter(mode => !process.env.QA_NAV_MODE || mode === process.env.QA_NAV_MODE)) {
-    for (const count of [0, 1, 2, 12]) await check(`${mode}/${count} changes: availability, order, wrap, focus and unchanged document`, async () => {
+    for (const count of [0, 1, 2, 8, 12]) await check(`${mode}/${count} changes: availability, order, wrap, focus and unchanged document`, async () => {
       const source = fixture(count);
       await setFixture(page, source, mode); await barReady(count, mode);
       const before = await state();
@@ -156,7 +161,7 @@ try {
       assert.notEqual(before.selection.ranges[0].anchor, before.selection.ranges[0].head);
       await navigate(1, 1, 2); await navigate(1, 2, 2, "Enter");
       assert.deepEqual(await state(), before);
-      if (mode === "live") assert.equal(await page.locator(".inline-diff-navigation-target.inline-diff-review").count(), 1);
+      if (mode === "live") assert.ok(await page.locator(".inline-diff-navigation-target.inline-diff-unit").count() >= 1);
     });
     for (const reason of ["manual scroll", "mode change", "plugin reload"]) await check(`${mode}/${reason} cancels pending navigation`, async () => {
       await setFixture(page, fixture(2), mode); await barReady(2, mode);

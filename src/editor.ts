@@ -27,11 +27,11 @@ function canonicalDocument(state: EditorState): unknown {
 
 class ComparisonWidget extends WidgetType {
   private comparison?: Comparison;
-  constructor(private plugin: InlineDiffPlugin, private note: ParsedNote, private group: ReviewGroup, private settingsVersion: number, private file: TFile | null, private sourcePath: string) { super(); }
-  eq(other: ComparisonWidget): boolean { return this.note.source === other.note.source && this.group.from === other.group.from && this.group.to === other.group.to && this.settingsVersion === other.settingsVersion && this.file === other.file && this.sourcePath === other.sourcePath; }
+  constructor(private plugin: InlineDiffPlugin, private note: ParsedNote, private group: ReviewGroup, private settingsVersion: number, private file: TFile | null, private sourcePath: string, private readOnly: boolean) { super(); }
+  eq(other: ComparisonWidget): boolean { return this.note.source === other.note.source && this.group.from === other.group.from && this.group.to === other.group.to && this.settingsVersion === other.settingsVersion && this.file === other.file && this.sourcePath === other.sourcePath && this.readOnly === other.readOnly; }
   toDOM(editor: EditorView): HTMLElement {
     const view = markdownView(editor.state);
-    this.comparison = new Comparison(this.plugin.app, editor.dom.ownerDocument, this.plugin, this.note, this.group, view?.file?.path ?? "", view, this.plugin.settings);
+    this.comparison = new Comparison(this.plugin.app, editor.dom.ownerDocument, this.plugin, this.note, this.group, view?.file?.path ?? "", this.readOnly ? null : view, this.plugin.settings);
     this.plugin.addChild(this.comparison);
     return this.comparison.element;
   }
@@ -52,7 +52,7 @@ export function editorExtension(plugin: InlineDiffPlugin) {
       for (const group of groups) {
         const editing = focused && revealSelection && state.selection.ranges.some(range => range.from >= group.from && range.from < group.to);
         const file = markdownView(state)?.file ?? null;
-        if (!editing) decorations.push({ from: group.from, to: group.to, value: Decoration.replace({ widget: new ComparisonWidget(plugin, note, group, plugin.settingsVersion, file, file?.path ?? ""), block: true }) });
+        if (!editing) decorations.push({ from: group.from, to: group.to, value: Decoration.replace({ widget: new ComparisonWidget(plugin, note, group, plugin.settingsVersion, file, file?.path ?? "", state.readOnly), block: true }) });
         else addSource(group.proposals);
       }
     } else addSource(note.proposals);

@@ -13,7 +13,7 @@ The fixture manifest is `test/fixtures/markdown.mjs`, including synthetic comple
 | Embeds | 11 | 33 | 99 |
 | Combined block/whitespace layouts | 2 | 6 | 18 |
 
-Native-render comparisons check meaningful DOM structure, Markdown destinations, callout types, table alignment, media options, and footnote structure. Marks added by this plugin and native display controls are excluded from comparison. PDF checks use stable embed destinations/options because PDF.js generates asynchronous internal DOM.
+Native-render comparisons check meaningful DOM structure, Markdown destinations, callout types, table alignment, media options, and footnote structure. The proposal comparisons are projected back into each alternative by selecting complete Before or After arms, unwrapping only their plugin placement shells and highlight spans, and retaining surrounding native structure. Both alternatives retain independent native-render expectations; structural tags, destinations, alignment and media semantics remain checked. Native display controls are excluded. PDF checks use stable embed destinations/options because PDF.js generates asynchronous internal DOM.
 
 ## Text and formatting
 
@@ -54,3 +54,16 @@ The interaction suite covers multiple proposals per container, duplicate text, t
 Theme checks run Default, Primary, Minimal, and Blue Topaz in light/dark palettes across all three views. Hover measurements compare text and table bounds plus scroll dimensions, with a 0.5 CSS pixel limit.
 
 See [the test report](test-report.md) for the actual versions, results, artifact hashes, performance measurements, and reviewed screenshots. Third-party plugin languages and mobile devices are outside this core desktop matrix.
+
+## Granular rendering
+
+`test/unified.test.mjs` and `scripts/obsidian-granular.mjs` add source-identity and real-host cases for eight separate cell proposals, repeated cell text, header changes, several proposals in one cell, table alignment, escaped pipes, inline code/formatting/links, multiple tables, row/column rewrites, independent row/cell decisions, twelve-column horizontal navigation, distant ordered/nested/task-list items, callout titles/bodies, nested folded callouts with tables and code, adjacent Unicode/RTL proposals, invisible destinations and local list structures. Every proposal in each editable granular fixture verifies both choices, independently captured source identity, exact saved bytes, one-step undo and redo. Ordered-list fixtures assert that resolving a nested item does not renumber another item. The eight-cell case navigates to eight distinct cells and then outside the table.
+
+Source, Live Preview and Reading navigation cover 0, 1, 2, 8 and 12 proposals, external count transitions, cancellation, splits, popouts and unchanged selection/history. A multi-passage proposal has one decision and one navigation stop. Ambiguous attribution is rejected rather than redirected to another occurrence of the text.
+
+Third-party renderer output has no general compatibility guarantee: arbitrary asynchronous DOM rewrites may invalidate a source mapping. Core families above retain native rendering and sanitization; generated Bases/iframe content stays inert. The fixture suite verifies stable PDF destinations/options rather than PDF.js's transient internal tree. Minimum-version and mobile-device testing are separate from the recorded desktop runtime.
+
+
+## Proposal presentation assertions
+
+Complete paragraph proposals retain two complete rendered paragraphs, including unchanged words in both. Phrase proposals retain only the phrase in each panel and surrounding text once. Ordinary cell/header edits use one outer table; whole-table proposals intentionally render two tables. Multiple markers in a cell produce separate stacked pairs; a multi-passage proposal produces one pair and one destination. Explicit unit/component and native-host assertions complement the independent whole-document semantic oracle. Both alternatives remain expanded with accessible Before/After labels and empty-arm placeholders.

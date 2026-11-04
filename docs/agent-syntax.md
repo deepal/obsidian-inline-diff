@@ -1,5 +1,7 @@
 # Agent syntax contract
 
+The portable [agent skill](../skills/obsidian-inline-diff/SKILL.md) gives the authoring workflow and examples. The rendering update introduces no new syntax.
+
 Write proposals directly into the note body. Never wrap or modify YAML frontmatter as a proposal. A proposal must be non-nested and complete.
 
 | Operation | Source | Accept | Reject |
@@ -21,7 +23,9 @@ Use small markers for edits inside normal Markdown containers:
 > {++Keep a backup.++}
 ```
 
-Each marker is an independent decision. Several markers in one paragraph, table, or callout share a rendered comparison, with numbered anchors for individual actions. Resolving one marker leaves the others pending.
+Each marker defines one complete stacked Before/After pair, one approval decision and one navigation stop. Mark a whole paragraph for a paragraph rewrite; both complete paragraphs appear with changed words highlighted automatically. Mark only a phrase for a local phrase comparison, with surrounding text once. Independent markers in the same cell, list or callout remain separate comparisons inside the shared structure. No numbered proposal selectors are needed. Resolving one leaves the others pending.
+
+Use local markers in table headers and callout titles as well as their bodies. Preserve list markers, quote prefixes, table alignment and escaped pipes outside ordinary text proposals. Wrap an entire table/list/callout only when the decision covers that whole structure; it intentionally shows two complete versions.
 
 ## Structural changes
 
@@ -78,4 +82,4 @@ Escape reserved tokens with a backslash when writing them as ordinary text: `\{+
 
 Do not nest proposals. Combine overlapping changes into one replacement around the complete affected structure. Unclosed, mismatched, nested, or ambiguous proposals remain non-actionable and receive diagnostics. Complete the proposal before asking a human to review it.
 
-Agents only write syntax. Human acceptance/rejection belongs to Source or Live Preview. Reading view and embedded previews are display-only.
+Agents only write syntax. Human acceptance/rejection belongs to Source or Live Preview. Reading and read-only panes have navigation without mutation controls; embedded previews are display-only. Previous/Next steps through individual proposal pairs and wraps, with both arrows disabled at one pending proposal.

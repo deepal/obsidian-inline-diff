@@ -4,21 +4,24 @@
   --inline-diff-deletion-text: var(--text-error, #cb2431);
   --inline-diff-deletion-background: rgba(248, 81, 73, .14);
 }
-.inline-diff-review { position: relative; border: 0; margin: 0; overflow: hidden; font-size: var(--font-text-size); }
-.inline-diff-anchors { position: absolute; top: 4px; right: 4px; z-index: 1; display: flex; gap: 4px; opacity: 0; pointer-events: none; font-size: var(--font-smallest); }
-.inline-diff-review:hover > .inline-diff-anchors, .inline-diff-review:focus-within > .inline-diff-anchors { opacity: 1; pointer-events: auto; }
-.inline-diff-anchors > .inline-diff-proposal-anchor { border: 1px solid var(--background-modifier-border); border-radius: 4px; padding: 0 5px; background: var(--background-primary); color: var(--text-muted); cursor: default; }
-.inline-diff-proposal-anchor:focus-visible { outline: 2px solid var(--interactive-accent); }
-.inline-diff-side { padding: 8px 12px; border: 0; border-left: 3px solid transparent; }
-.inline-diff-before { background-color: color-mix(in srgb, var(--inline-diff-deletion-background) 35%, transparent); border-left-color: var(--inline-diff-deletion-text); }
-.inline-diff-after { background-color: color-mix(in srgb, var(--inline-diff-addition-background) 35%, transparent); border-left-color: var(--inline-diff-addition-text); }
+.inline-diff-review { position: relative; border: 0; margin: 0; overflow: visible; font-size: var(--font-text-size); }
+.inline-diff-review .inline-diff-proposal { display: block; position: relative; width: 100%; box-sizing: border-box; margin: 0; white-space: normal; }
+.inline-diff-review .inline-diff-side { display: block; box-sizing: border-box; width: 100%; padding: 8px 12px; border: 0; border-left: 3px solid transparent; }
+.inline-diff-review .inline-diff-before { background-color: color-mix(in srgb, var(--inline-diff-deletion-background) 35%, transparent); border-left-color: var(--inline-diff-deletion-text); }
+.inline-diff-review .inline-diff-after { background-color: color-mix(in srgb, var(--inline-diff-addition-background) 35%, transparent); border-left-color: var(--inline-diff-addition-text); }
+.inline-diff-side-content { display: block; overflow-x: auto; white-space: normal; }
+.inline-diff-side-content > :first-child { margin-top: 0; }
+.inline-diff-side-content > :last-child { margin-bottom: 0; }
+.inline-diff-review .inline-diff-list-proxy { list-style: none; }
+.inline-diff-hunk-anchor:focus-visible { outline: 2px solid var(--interactive-accent); }
 .inline-diff-content > :first-child { margin-top: 0; }
 .inline-diff-content > :last-child { margin-bottom: 0; }
 .inline-diff-content { overflow-x: auto; white-space: normal; }
 .inline-diff-render-context { display: none !important; }
 .inline-diff-review .inline-diff-addition, .inline-diff-source-mark.inline-diff-addition { color: var(--inline-diff-addition-text); background: var(--inline-diff-addition-background); }
 .inline-diff-review .inline-diff-deletion, .inline-diff-source-mark.inline-diff-deletion { color: var(--inline-diff-deletion-text); background: var(--inline-diff-deletion-background); }
-.inline-diff-review .inline-diff-changed { padding: 0; border-radius: 2px; }
+.inline-diff-review .inline-diff-changed { border-radius: 2px; }
+.inline-diff-review .inline-diff-text { padding: 0; }
 .inline-diff-source-mark.cm-strikethrough, .inline-diff-source-mark .cm-strikethrough, .cm-strikethrough:has(.inline-diff-source-mark) { text-decoration: none; }
 .inline-diff-review .inline-diff-source { padding: 4px 10px; border-top: 1px solid var(--background-modifier-border); font-size: var(--font-small); }
 .inline-diff-source-entry { padding: 4px 0; }
@@ -54,3 +57,8 @@
 .inline-diff-review-bar-actions [data-decision="accept"] { color: var(--text-success, #22863a); }
 .inline-diff-review-bar-actions [data-decision="reject"] { color: var(--text-error, #cb2431); }
 .inline-diff-review-bar-actions > button:disabled { opacity: .4; cursor: default; }
+
+.inline-diff-evidence { display: inline-block; font-size: var(--font-small); white-space: pre-wrap; border: 1px solid var(--background-modifier-border); border-radius: 3px; padding: 2px 4px; }
+.inline-diff-evidence > code { margin-inline: 3px; }
+/* Give inert frames a real review hit area without enabling their contents. */
+.inline-diff-fragment:has(> iframe) { display: inline-block; max-width: 100%; }

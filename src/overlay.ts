@@ -128,15 +128,13 @@ export class ReviewOverlay extends Component {
     if (rect.bottom < pane.top || rect.top > pane.bottom) { this.hide(); return; }
     const width = this.element.offsetWidth;
     const height = this.element.offsetHeight;
-    let left = Math.max(pane.left + 4, Math.min(rect.right - width, pane.right - width - 4, win.innerWidth - width - 4));
+    const left = Math.max(pane.left + 4, Math.min(rect.right - width, pane.right - width - 4, win.innerWidth - width - 4));
     let top = Math.max(pane.top + 4, Math.min(rect.top - height + 4, pane.bottom - height - 4, win.innerHeight - height - 4));
-    const selectors = this.anchor.querySelector<HTMLElement>(":scope > .inline-diff-anchors")?.getBoundingClientRect();
-    // At the viewport edge, clamping above the block can cover its numbered
-    // selectors. Keep them reachable while preserving the floating layout.
-    if (selectors && left < selectors.right && left + width > selectors.left && top < selectors.bottom && top + height > selectors.top) {
-      const below = selectors.bottom + 4;
+    // At the top edge, an above-hunk clamp can cover a small image or edit.
+    // Keep the hovered hunk reachable while the toolbar is visible.
+    if (this.anchor.classList.contains("inline-diff-unit") && left < rect.right && left + width > rect.left && top < rect.bottom && top + height > rect.top) {
+      const below = rect.bottom + 4;
       if (below + height <= Math.min(pane.bottom, win.innerHeight) - 4) top = below;
-      else left = Math.max(pane.left + 4, selectors.left - width - 4);
     }
     this.element.setCssProps({ left: `${left}px`, top: `${top}px` });
   }

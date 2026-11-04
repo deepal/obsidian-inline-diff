@@ -1,5 +1,7 @@
 # Verification report — Inline Diff 0.1.0
 
+For the current proposal-sized Before/After presentation, see [granular rendering verification](granular-testing.md). This report records the original release.
+
 Tested on **31 October 2026**, using disposable application profiles and synthetic vaults. All applicable cases passed, with no skipped tests and no plugin-attributable console errors. Local deployment was verified separately. Mobile acceptance and publication were outside this run.
 
 ## Exact environment

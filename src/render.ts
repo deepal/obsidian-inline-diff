@@ -1,6 +1,6 @@
-import { Component, MarkdownRenderer, type App, type MarkdownView } from "obsidian";
 import { diffWordsWithSpace } from "diff";
-import { project, type ParsedNote, type Proposal, type ReviewGroup } from "./model";
+import { Component, MarkdownRenderer, type App, type MarkdownView } from "obsidian";
+import { project, reviewUnits, type ParsedNote, type Proposal, type ReviewGroup } from "./model";
 import { applyColours, type DiffSettings } from "./settings";
 import type InlineDiffPlugin from "./main";
 
@@ -14,6 +14,8 @@ function documentContext(note: ParsedNote) {
   }
   return context;
 }
+
+import { prepareProjection, captureProjection, assembleComparisons, comparisonSides, registerReviewAnchors, unregisterReviewAnchors, reviewIdentity } from "./unified";
 
 function textNodes(root: HTMLElement): Text[] {
   const walker = root.ownerDocument.createTreeWalker(root, 4);
@@ -74,7 +76,7 @@ function markRange(root: HTMLElement, from: number, to: number, side: "before" |
       range.setEnd(node, Math.min(node.length, to - position));
       // The selection and mark must share a document.
       const mark = root.ownerDocument.createElement("span");
-      mark.className = `inline-diff-changed inline-diff-${side === "before" ? "deletion" : "addition"}`;
+      mark.className = `inline-diff-text inline-diff-changed inline-diff-${side === "before" ? "deletion" : "addition"}`;
       range.surroundContents(mark);
       marked = true;
     }
@@ -95,11 +97,9 @@ function highlight(before: HTMLElement, after: HTMLElement, proposals: Proposal[
   let oldPosition = 0, newPosition = 0;
   for (const part of diffWordsWithSpace(oldText, newText)) {
     if (part.removed || part.added) {
-      const candidates = proposals.filter(proposal => (part.removed ? proposal.before : proposal.after).includes(part.value.trim()));
-      // Never guess an action target for indistinguishable visual hunks.
-      // Numbered source anchors retain exact identity for those proposals.
-      const proposal = proposals.length === 1 ? proposals[0] : candidates.length === 1 ? candidates[0] : undefined;
-      const ids = (proposal ? [proposal] : candidates).map(candidate => candidate.id);
+      // This pair already owns one exact source proposal; highlights never
+      // determine approval identity by searching rendered words.
+      const ids = proposals.map(proposal => proposal.id);
       if (part.removed) oldRanges.push({ from: oldPosition, to: oldPosition + part.value.length, ids });
       else newRanges.push({ from: newPosition, to: newPosition + part.value.length, ids });
     }
@@ -157,54 +157,33 @@ export class Comparison extends Component {
     view: MarkdownView | null, settings: DiffSettings,
   ) {
     super();
-    // Use the owning document, including popouts.
     const root = doc.createElement("section");
     this.element = root; root.className = "inline-diff-review";
     root.dataset.inlineDiffGroup = group.id;
     applyColours(root, settings);
-    root.setAttribute("role", "group");
-    root.setAttribute("aria-label", "Proposed changes");
-    const file = view?.file ?? null;
-    for (const diagnostic of note.diagnostics.filter(diagnostic => diagnostic.from < group.to && diagnostic.to > group.from)) {
-      root.createDiv({ cls: "inline-diff-error inline-diff-diagnostic-banner", text: diagnostic.message });
-    }
+    root.setAttribute("role", "group"); root.setAttribute("aria-label", "Proposed changes");
+    for (const diagnostic of note.diagnostics.filter(diagnostic => diagnostic.from < group.to && diagnostic.to > group.from)) root.createDiv({ cls: "inline-diff-error inline-diff-diagnostic-banner", text: diagnostic.message });
+    const file = view?.file ?? null, units = reviewUnits(note, group), referenceNamespace = crypto.randomUUID();
+    const body = () => { const element = doc.createElement("div"); element.className = "inline-diff-content markdown-rendered"; return element; };
+    const oldBody = body(), newBody = body();
     if (view) {
-      // A single change needs no numbered heading. The comparison itself is
-      // the keyboard anchor; shared containers have floating identity anchors.
-      const anchors = group.proposals.length > 1 ? root.createDiv({ cls: "inline-diff-anchors" }) : null;
-      for (const [index, proposal] of group.proposals.entries()) {
-        const anchor = anchors ? anchors.createSpan({ cls: "inline-diff-proposal-anchor", text: `${index + 1}` }) : root;
-        anchor.classList.add("inline-diff-proposal-anchor");
-        anchor.tabIndex = 0; anchor.dataset.inlineDiffId = proposal.id;
-        anchor.setAttribute("aria-label", `Change ${index + 1}: ${proposal.kind}`);
-        if (anchors) anchor.title = `${proposal.before || "(empty)"} → ${proposal.after || "(empty)"}`;
-      }
       const show = (event: Event) => {
         if (!plugin.isActive) return;
-        const target = event.target as HTMLElement;
-        const anchor = target.closest<HTMLElement>(".inline-diff-proposal-anchor,.inline-diff-source-entry") ?? root;
-        const proposal = group.proposals.find(p => p.id === anchor.dataset.inlineDiffId) ?? (group.proposals.length === 1 ? group.proposals[0] : undefined);
-        // Highlights are display-only. All rendered review actions belong at
-        // the comparison's top right, even when a numbered selector has focus.
-        if (proposal) plugin.overlay(doc).show(root, { view, file, source: note.source, proposal }, anchor);
+        const anchor = (event.target as Element).closest<HTMLElement>(".inline-diff-unit");
+        const proposal = group.proposals.find(p => p.id === (anchor ? reviewIdentity(anchor) : undefined));
+        if (anchor && proposal) plugin.overlay(doc).show(anchor, { view, file, source: note.source, proposal }, anchor);
       };
       this.registerDomEvent(root, "pointerover", show);
       this.registerDomEvent(root, "focusin", show);
       this.registerDomEvent(root, "keydown", event => {
         if (event.key !== "Enter" && event.key !== " ") return;
-        if (!(event.target as Element).matches(".inline-diff-proposal-anchor,.inline-diff-source-entry")) return;
+        if (!(event.target as Element).matches(".inline-diff-hunk-anchor") || (event.target as Element).matches("a,button,input")) return;
         event.preventDefault(); event.stopPropagation(); show(event); plugin.overlay(doc).focus();
       });
       this.registerDomEvent(root, "pointerleave", () => plugin.scheduleOverlayHide(doc));
     }
-    const before = root.createDiv({ cls: "inline-diff-side inline-diff-before" });
-    before.setAttribute("role", "group"); before.setAttribute("aria-label", "Before");
-    const oldBody = before.createDiv({ cls: "inline-diff-content markdown-rendered" });
-    const after = root.createDiv({ cls: "inline-diff-side inline-diff-after" });
-    after.setAttribute("role", "group"); after.setAttribute("aria-label", "After");
-    const newBody = after.createDiv({ cls: "inline-diff-content markdown-rendered" });
     const render = async (body: HTMLElement, markdown: string, decision: "accept" | "reject") => {
-      if (!markdown.trim()) { body.createSpan({ cls: "inline-diff-empty", text: "Empty" }); return; }
+      if (!markdown.trim()) return;
       if (/\[\^|\^\[/.test(markdown) || (markdown.includes("[") && documentContext(note).hasReferences)) {
         // Footnote ordinals depend on earlier references elsewhere in the note.
         // Render with the complete clean document context, then move only this
@@ -212,7 +191,7 @@ export class Comparison extends Component {
         const prefixNote: ParsedNote = { ...note, source: note.source.slice(0, group.from), proposals: note.proposals.filter(proposal => proposal.to <= group.from) };
         const prefix = project(prefixNote, decision).text.slice(note.frontmatterEnd);
         const complete = (decision === "accept" ? documentContext(note).after : documentContext(note).before).slice(note.frontmatterEnd);
-        const suffix = complete.slice(prefix.length + markdown.length);
+        const suffix = complete.slice(prefix.length + (decision === "accept" ? group.after.length : group.before.length));
         const marker = crypto.randomUUID();
         const scratch = body.createDiv({ cls: "inline-diff-render-context" });
         await MarkdownRenderer.render(app, `${prefix}\n\n<div data-inline-diff-boundary="${marker}-start"></div>\n\n${markdown}\n\n<div data-inline-diff-boundary="${marker}-end"></div>\n\n${suffix}`, scratch, sourcePath, this);
@@ -225,44 +204,90 @@ export class Comparison extends Component {
         if (footnotes && (body.querySelector(".footnote-ref") || /^\s*\[\^[^\]]+\]:/m.test(markdown))) body.append(footnotes);
         scratch.remove();
         // Before/After and separate panes must not share footnote DOM identities.
+        const stableId = (id: string) => `${referenceNamespace}-${id.replace(/^((?:fn|fnref)-\d+(?:-\d+)?)-[a-f0-9]{8,}(.*)$/, "$1$2")}`;
         const ids = new Map<string, string>();
         for (const element of body.querySelectorAll<HTMLElement>(".footnotes [id], .footnote-ref[id]")) {
-          const id = element.id; ids.set(id, `${marker}-${id}`); element.id = `${marker}-${id}`;
+          const id = element.id; ids.set(id, stableId(id)); element.id = stableId(id);
         }
+        for (const element of body.querySelectorAll<HTMLElement>("[data-footnote-id]")) element.dataset.footnoteId = stableId(element.dataset.footnoteId!);
         for (const link of body.querySelectorAll<HTMLAnchorElement>("a[href^='#']")) {
-          const mapped = ids.get(link.getAttribute("href")!.slice(1));
+          const raw = link.getAttribute("href")!.slice(1), mapped = ids.get(raw) ?? (/^fn(?:ref)?-/.test(raw) ? stableId(raw) : undefined);
           if (mapped) link.setAttribute("href", `#${mapped}`);
         }
         return;
       }
       await MarkdownRenderer.render(app, markdown, body, sourcePath, this);
     };
-    this.ready = Promise.all([render(oldBody, group.before, "reject"), render(newBody, group.after, "accept")]).then(() => {
+    this.ready = (async () => {
+      await Promise.all([render(oldBody, group.before, "reject"), render(newBody, group.after, "accept")]);
       if (this.cancelled) return;
-      makeReadOnly(oldBody, this); makeReadOnly(newBody, this);
-      const visible = highlight(oldBody, newBody, group.proposals);
-      const hidden = group.proposals.filter(proposal => !visible.has(proposal.id));
-      // Ordinary edits need only the rendered comparison. Preserve reviewable
-      // evidence when rendering hides a link destination, comment, etc.
-      if (hidden.length) {
-        const details = root.createEl("details", { cls: "inline-diff-source" });
-        details.createEl("summary", { text: "Hidden Markdown changes" });
-        for (const proposal of hidden) {
-          const entry = details.createDiv({ cls: "inline-diff-source-entry" });
-          entry.dataset.inlineDiffId = proposal.id;
-          if (view) entry.tabIndex = 0;
-          entry.createEl("pre", { cls: "inline-diff-deletion", text: proposal.before || "(empty)" });
-          entry.createEl("pre", { cls: "inline-diff-addition", text: proposal.after || "(empty)" });
+      const prefix = "ID" + crypto.randomUUID().replaceAll("-", "");
+      const capture = async (original: HTMLElement, source: string, decision: "accept" | "reject") => {
+        const mapping = prepareProjection(original, source, units, decision, prefix);
+        if (mapping.text === source) return mapping.blocks;
+        const marked = body(); await render(marked, mapping.text, decision);
+        if (this.cancelled) return new Map<string, Range>();
+        return captureProjection(original, marked, mapping);
+      };
+      const [oldRanges, newRanges] = await Promise.all([capture(oldBody, group.before, "reject"), capture(newBody, group.after, "accept")]);
+      if (this.cancelled) return;
+      const comparisons = assembleComparisons(oldBody, newBody, units, oldRanges, newRanges);
+      // A side that contains native definitions owns its own DOM identities.
+      // References to definitions outside a proposal retain the shared context.
+      for (const placement of comparisons.placements) {
+        const sides = placement.anchor && comparisonSides(placement.anchor);
+        if (!sides) continue;
+        for (const [name, side] of [["before",sides.before],["after",sides.after]] as const) {
+          const ids = new Map<string,string>();
+          for (const element of side.querySelectorAll<HTMLElement>("[id]")) { const id = element.id; ids.set(id,`${id}-${placement.unit.id}-${name}`); element.id = ids.get(id)!; }
+          for (const element of side.querySelectorAll<HTMLElement>("[data-footnote-id]")) element.dataset.footnoteId = ids.get(element.dataset.footnoteId!) ?? element.dataset.footnoteId;
+          for (const link of side.querySelectorAll<HTMLAnchorElement>("a[href^='#']")) { const id = ids.get(link.getAttribute("href")!.slice(1)); if (id) link.setAttribute("href",`#${id}`); }
         }
-        details.open = true;
       }
+      root.append(comparisons.element);
+      const decorate = () => {
+        for (const placement of comparisons.placements) {
+          const sides = placement.anchor && comparisonSides(placement.anchor);
+          if (!sides) continue;
+          for (const side of [sides.before, sides.after]) {
+            for (const mark of side.querySelectorAll(".inline-diff-text")) mark.replaceWith(...mark.childNodes);
+            side.querySelectorAll(".inline-diff-evidence,.inline-diff-empty").forEach(element => element.remove());
+            side.normalize();
+          }
+          const visible = highlight(sides.before, sides.after, [sides.unit.proposal]);
+          const attributes = (side: HTMLElement) => [...side.querySelectorAll("a,img,iframe,input")].map(element => [element.tagName, ...["href","data-href","src","alt","checked"].map(name => element.getAttribute(name))]);
+          const evidence = !visible.size || JSON.stringify(attributes(sides.before)) !== JSON.stringify(attributes(sides.after));
+          for (const [name, side, source] of [["before",sides.before,sides.unit.proposal.before],["after",sides.after,sides.unit.proposal.after]] as const) {
+            if (!source.trim()) side.createSpan({ cls: "inline-diff-empty", text: "Empty" });
+            else if (evidence) {
+              const entry = side.createSpan({ cls: "inline-diff-evidence" });
+              entry.createSpan({ cls: "inline-diff-evidence-label", text: "Markdown: " });
+              entry.createEl("code", { cls: name === "before" ? "inline-diff-deletion" : "inline-diff-addition", text: source });
+            }
+          }
+        }
+      };
+      decorate();
+      for (const callout of comparisons.element.querySelectorAll<HTMLElement>(".callout.is-collapsed")) {
+        callout.classList.remove("is-collapsed");
+        const content = callout.querySelector<HTMLElement>(":scope > .callout-content");
+        if (content) { content.style.removeProperty("display"); content.style.removeProperty("height"); }
+      }
+      makeReadOnly(comparisons.element, this);
+      registerReviewAnchors(root, units, !!view);
+      const observer = new doc.defaultView!.MutationObserver(() => {
+        if (this.cancelled) return;
+        observer.disconnect(); decorate(); observer.observe(comparisons.element, { childList: true, subtree: true });
+      });
+      observer.observe(comparisons.element, { childList: true, subtree: true });
+      this.register(() => observer.disconnect());
       root.dataset.inlineDiffReady = "true";
-    }).catch((error: unknown) => {
+    })().catch((error: unknown) => {
       if (!this.cancelled) {
         root.createDiv({ cls: "inline-diff-error", text: "Could not render the comparison. The proposal is preserved in source." });
         console.error("Inline Diff: comparison rendering failed", error);
       }
     });
-    this.register(() => { this.cancelled = true; });
+    this.register(() => { this.cancelled = true; unregisterReviewAnchors(root); });
   }
 }

@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { parseNote, reviewGroups } from "../src/model.ts";
 import { dom, importHostModule } from "./helpers.mjs";
 
-const { navigationIndex, ChangeNavigator } = await importHostModule("src/navigation.ts");
+const { navigationIndex, ChangeNavigator, registerReviewAnchors, ownReviewElement } = await importHostModule("src/navigation.ts");
 const source = "Intro.\n\nA {~~same~>same new~~} and {~~same~>same new~~}.\n\n{++last++}\n";
 const { proposals } = parseNote(source);
 
@@ -49,7 +49,10 @@ function reading(t, render = true) {
   if (render) for (const [index, group] of groups.entries()) {
     const element = surface.createDiv({ cls: "inline-diff-review" });
     element.dataset.inlineDiffGroup = group.id; element.dataset.inlineDiffReady = "true";
-    element.getBoundingClientRect = () => ({ top: index * 700 - surface.scrollTop, bottom: index * 700 - surface.scrollTop + 100, height: 100 });
+    const anchor = element.createSpan({ cls: "inline-diff-proposal" }); ownReviewElement(anchor, group.proposals[0].id);
+    // Register through the same bundled registry used by this navigator.
+    registerReviewAnchors(element, group.proposals.map(proposal => ({id:proposal.id,proposal})), false);
+    anchor.getBoundingClientRect = () => ({ top: index * 700 - surface.scrollTop, bottom: index * 700 - surface.scrollTop + 100, height: 100 });
   }
   let mode = "preview";
   const view = { contentEl: host, getMode: () => mode, currentMode: { getScroll: () => surface.scrollTop / 350 }, setEphemeralState(state) { calls.push(state); surface.scrollTop = state.line * 350; } };
@@ -68,6 +71,7 @@ async function finished(navigator) {
 test("Reading navigation settles by source identity, ignores its own scrolling and resets on manual scrolling", async t => {
   const f = reading(t);
   f.navigator.go(1); await finished(f.navigator); assert.equal(f.navigator.message, "Change 1 of 2");
+  assert.deepEqual(f.calls[0], { line: 0 });
   f.surface.dispatchEvent(new f.document.window.Event("scroll"));
   assert.equal(f.navigator.message, "Change 1 of 2");
   f.navigator.go(1); await finished(f.navigator); assert.equal(f.navigator.message, "Change 2 of 2");
@@ -85,13 +89,14 @@ test("Reading navigation matches normalized render offsets when serialized sourc
   f.navigator.go(1); await finished(f.navigator); assert.equal(f.navigator.message, "Change 2 of 2");
 });
 
-for (const reason of ["source", "file", "mode", "wheel", "unload"]) test(`pending navigation cancels on ${reason}`, async t => {
+for (const reason of ["source", "file", "mode", "wheel", "horizontal wheel", "unload"]) test(`pending navigation cancels on ${reason}`, async t => {
   const f = reading(t);
   f.navigator.go(1); assert.equal(f.navigator.busy, true);
   if (reason === "source") f.update({ source: "Changed source.", pending: 0 });
   if (reason === "file") f.update({ file: { path: "Other.md" } });
   if (reason === "mode") f.mode("source");
   if (reason === "wheel") f.surface.dispatchEvent(new f.document.window.WheelEvent("wheel", { bubbles: true, deltaY: 100 }));
+  if (reason === "horizontal wheel") f.surface.dispatchEvent(new f.document.window.WheelEvent("wheel", { bubbles: true, deltaX: 100 }));
   if (reason === "unload") f.navigator.unload();
   await finished(f.navigator); await new Promise(resolve => setTimeout(resolve, 30));
   assert.deepEqual(f.calls, []); assert.equal(f.navigator.message, "");

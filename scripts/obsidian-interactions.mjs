@@ -1,3 +1,4 @@
+import { projectRendered } from "./unified-oracle.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -54,7 +55,7 @@ async function proseGeometry(mode) {
       const paragraphs = [...root.querySelectorAll(mode === "reading" ? "p" : ".cm-line")].filter(element => !element.closest(".inline-diff-review"));
       const above = paragraphs.find(element => element.textContent === "Above paragraph."), below = paragraphs.find(element => element.textContent === "Below paragraph.");
       const comparison = root.querySelector(".inline-diff-review");
-      const alternatives = [...comparison.querySelectorAll(".inline-diff-content > p")];
+      const alternatives = [...comparison.querySelectorAll(".inline-diff-side-content > p")];
       const content = alternatives.map(element => {
         const box = element.getBoundingClientRect(), lines = [], walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
         let text;
@@ -71,7 +72,7 @@ async function proseGeometry(mode) {
       });
       const borders = element => { const s = getComputedStyle(element); return [s.borderTopWidth, s.borderRightWidth, s.borderBottomWidth, s.borderLeftWidth].map(parseFloat); };
       const style = comparison && getComputedStyle(comparison);
-      return { above: rect(above), below: rect(below), block: rect(comparison ?? alternatives[0]), content, outer: style && { margin: [style.marginTop, style.marginRight, style.marginBottom, style.marginLeft].map(parseFloat), border: borders(comparison), shadow: style.boxShadow }, sideBorders: comparison && [...comparison.querySelectorAll(":scope > .inline-diff-side")].map(borders) };
+      return { above: rect(above), below: rect(below), block: rect(comparison ?? alternatives[0]), content, outer: style && { margin: [style.marginTop, style.marginRight, style.marginBottom, style.marginLeft].map(parseFloat), border: borders(comparison), shadow: style.boxShadow }, sideBorders: comparison && [...comparison.querySelectorAll(".inline-diff-proposal > .inline-diff-side")].map(borders) };
     };
     let previous = "", stable = 0;
     const deadline = performance.now() + 10000;
@@ -86,12 +87,21 @@ async function proseGeometry(mode) {
   }, mode);
 }
 async function renderedGeometry(mode, before, after) {
-  return page.evaluate(async ({ mode, markdown }) => {
+  return page.evaluate(async ({ mode, markdown, projectSource }) => {
+    const project = (0,eval)(`(${projectSource})`);
     const view = app.workspace.activeLeaf.view, scope = mode === "reading" ? ".markdown-reading-view" : ".markdown-source-view";
-    const comparison = view.contentEl.querySelector(`${scope} .inline-diff-review`), results = [];
-    for (const [index, side] of ["before", "after"].entries()) results.push(await inlineDiffQa.renderedGeometry(markdown[index], comparison.querySelector(`.inline-diff-${side} .inline-diff-content`), view.file.path));
+    const comparison = view.contentEl.querySelector(`${scope} .inline-diff-content`), results = [];
+    for (const [index, side] of ["before", "after"].entries()) {
+      const clone = project(comparison, side);
+      const host = document.createElement("section"); host.className = "inline-diff-review";
+      host.style.cssText = `position:fixed;left:-20000px;top:0;visibility:hidden;width:${comparison.getBoundingClientRect().width}px`;
+      clone.style.width = `${comparison.getBoundingClientRect().width}px`;
+      host.append(clone); comparison.parentElement.append(host);
+      try { results.push(await inlineDiffQa.renderedGeometry(markdown[index], clone, view.file.path)); }
+      finally { host.remove(); }
+    }
     return results;
-  }, { mode, markdown: [before, after] });
+  }, { mode, markdown: [before, after], projectSource: projectRendered.toString() });
 }
 function equalRenderedGeometry({ actual, expected }) {
   assert.equal(actual.text, expected.text, "native rendered text including whitespace");
@@ -147,16 +157,21 @@ function equalBounds(before, after) {
   assert.deepEqual(before.scroll, after.scroll);
 }
 async function hoverFirst(mode) {
-  const target = page.locator(mode === "source" ? ".cm-content .inline-diff-source-mark" : ".markdown-source-view .inline-diff-proposal-anchor").first();
+  const target = page.locator(mode === "source" ? ".cm-content .inline-diff-source-mark" : ".markdown-source-view .inline-diff-hunk-anchor[tabindex]").first();
   await page.mouse.move(5, 5);
   await page.waitForFunction(() => !document.querySelector(".inline-diff-toolbar"));
-  const block = mode !== "source" && await target.evaluate(element => element.classList.contains("inline-diff-review"));
-  if (mode !== "source" && !block) await page.locator(".markdown-source-view .inline-diff-review").first().hover({ position: { x: 6, y: 8 } });
-  // Enter shared comparisons before their floating numbered selectors.
-  await target.hover(block ? { position: { x: 6, y: 8 } } : {}); await page.locator(".inline-diff-toolbar:visible").waitFor(); return target;
+  // Move to the visible part of a tall pair; locator.hover() centers it by
+  // scrolling, which would contaminate the 0.5px hover-layout measurement.
+  const point = await target.evaluate(element => {
+    const r = element.getBoundingClientRect(), view = element.closest(".markdown-source-view"), viewport = view?.querySelector(".cm-scroller")?.getBoundingClientRect();
+    const top = Math.max(r.top,viewport?.top ?? 0), bottom = Math.min(r.bottom,viewport?.bottom ?? innerHeight);
+    return bottom > top ? { x: r.left + Math.min(r.width/2,12), y: top + Math.min((bottom-top)/2,12) } : null;
+  });
+  if (point) await page.mouse.move(point.x,point.y); else await target.hover();
+  await page.locator(".inline-diff-toolbar:visible").waitFor(); return target;
 }
 async function prepareHover(mode) {
-  const target = page.locator(mode === "source" ? ".cm-content .inline-diff-source-mark" : ".markdown-source-view .inline-diff-proposal-anchor").first();
+  const target = page.locator(mode === "source" ? ".cm-content .inline-diff-source-mark" : ".markdown-source-view .inline-diff-hunk-anchor[tabindex]").first();
   await target.scrollIntoViewIfNeeded();
   await page.mouse.move(5, 5);
   await page.evaluate(async mode => {
@@ -188,15 +203,18 @@ async function execute(command) {
 async function blockToolbarPosition(block) {
   const geometry = await block.evaluate(element => {
     const toolbar = element.ownerDocument.querySelector(".inline-diff-toolbar");
-    const rect = element.getBoundingClientRect(), box = toolbar.getBoundingClientRect();
+    const overlay = app.plugins.plugins["inline-diff"].overlay(element.ownerDocument);
+    const rect = overlay.anchor.getBoundingClientRect(), box = toolbar.getBoundingClientRect();
     const pane = app.workspace.activeLeaf.view.contentEl.querySelector(".cm-scroller").getBoundingClientRect();
     const win = element.ownerDocument.defaultView;
     return { left: box.left, top: box.top,
       expectedLeft: Math.max(pane.left + 4, Math.min(rect.right - box.width, pane.right - box.width - 4, win.innerWidth - box.width - 4)),
-      expectedTop: Math.max(pane.top + 4, Math.min(rect.top - box.height + 4, pane.bottom - box.height - 4, win.innerHeight - box.height - 4)) };
+      expectedTop: Math.max(pane.top + 4, Math.min(rect.top - box.height + 4, pane.bottom - box.height - 4, win.innerHeight - box.height - 4)),
+      outside: box.bottom <= rect.top || box.top >= rect.bottom || box.right <= rect.left || box.left >= rect.right,
+      clamped: rect.height + box.height + 8 > pane.height };
   });
   assert.ok(Math.abs(geometry.left - geometry.expectedLeft) <= .5, `toolbar must stay at block right: ${JSON.stringify(geometry)}`);
-  assert.ok(Math.abs(geometry.top - geometry.expectedTop) <= .5, `toolbar must stay at block top: ${JSON.stringify(geometry)}`);
+  assert.ok(geometry.outside || geometry.clamped, `toolbar leaves its hunk reachable: ${JSON.stringify(geometry)}`);
   return geometry;
 }
 
@@ -525,16 +543,12 @@ try {
       const toolbar = await page.locator(".inline-diff-toolbar").boundingBox(), bar = await page.locator(".inline-diff-review-bar").boundingBox();
       assert.ok(toolbar.y >= bar.y + bar.height, "floating toolbar must not cover bulk controls");
     });
-    await check("shared selectors remain reachable when the toolbar is clamped below the review bar", async () => {
+    await check("local hunk controls remain reachable below the pinned bar", async () => {
       await setFixture(page, source, "live"); await ready("live"); await barReady(3);
-      await page.evaluate(() => { app.workspace.activeLeaf.view.contentEl.querySelector(".cm-scroller").scrollTop = 84; });
-      const block = page.locator(".markdown-source-view .inline-diff-review").first();
-      await block.hover({ position: { x: 6, y: 8 } });
-      await block.locator(".inline-diff-anchors .inline-diff-proposal-anchor").first().hover();
-      const toolbar = page.locator(".inline-diff-toolbar:visible"); await toolbar.waitFor();
-      const selectors = await block.locator(".inline-diff-anchors").boundingBox(), box = await toolbar.boundingBox();
-      assert.ok(box.x + box.width <= selectors.x || box.x >= selectors.x + selectors.width || box.y + box.height <= selectors.y || box.y >= selectors.y + selectors.height, "toolbar must not cover proposal selectors");
-      await toolbar.locator("[data-decision=reject]").hover(); await toolbar.locator("[data-decision=reject]").click();
+      await hoverFirst("live");
+      const box = await page.locator(".inline-diff-toolbar:visible").boundingBox(), bar = await page.locator(".inline-diff-review-bar").boundingBox();
+      assert.ok(box.y >= bar.y + bar.height);
+      await page.locator(".inline-diff-toolbar:visible [data-decision=reject]").click();
       await page.evaluate(() => app.plugins.plugins["inline-diff"].lastResolution);
       assert.equal(await contents(), source.replace("{~~old~>new~~}", "old")); await barReady(2);
     });
@@ -650,22 +664,24 @@ try {
       const scope = page.locator(mode === "reading" ? ".markdown-reading-view" : ".markdown-source-view");
       await setFixture(page, source, mode); await ready(mode);
       assert.equal(await scope.locator(".inline-diff-review .inline-diff-heading,.inline-diff-review .inline-diff-side-label,.inline-diff-review .inline-diff-source").count(), 0);
-      assert.equal(await scope.locator(".inline-diff-review .inline-diff-before[aria-label=Before]").count(), 2);
-      assert.equal(await scope.locator(".inline-diff-review .inline-diff-after[aria-label=After]").count(), 2);
+      assert.equal(await scope.locator(".inline-diff-review > .inline-diff-content").count(), 2);
+      assert.equal(await scope.locator(".inline-diff-side").count(), 6);
+      assert.equal(await scope.locator(".inline-diff-anchors").count(), 0);
       const hidden = "Intro.\n\nA {~~old~>new~~} word and {~~[Same label](Target.md)~>[Same label](Other.md)~~}.\n\nTail.\n";
       await setFixture(page, hidden, mode); await ready(mode, 1);
-      const details = scope.locator(".inline-diff-review .inline-diff-source");
-      assert.equal(await details.locator(".inline-diff-source-entry").count(), 1);
-      assert.match(await details.textContent(), /Target\.md/);
-      assert.match(await details.textContent(), /Other\.md/);
-      assert.equal(await details.locator(".inline-diff-source-entry").getAttribute("tabindex"), mode === "reading" ? null : "0");
-      if (mode === "reading") assert.equal(await page.locator(".inline-diff-toolbar,.markdown-reading-view .inline-diff-proposal-anchor").count(), 0);
+      const details = scope.locator(".inline-diff-review .inline-diff-evidence");
+      assert.equal(await details.count(), 2);
+      assert.match((await details.allTextContents()).join(""), /Target\.md/);
+      assert.match((await details.allTextContents()).join(""), /Other\.md/);
+      const id = await details.first().evaluate(element => element.closest(".inline-diff-proposal").dataset.inlineDiffId);
+      assert.equal(await scope.locator(`.inline-diff-hunk-anchor[data-inline-diff-id="${id}"][tabindex]`).count(), mode === "reading" ? 0 : 1);
+      if (mode === "reading") assert.equal(await page.locator(".inline-diff-toolbar,.markdown-reading-view .inline-diff-hunk-anchor[tabindex]").count(), 0);
       assert.equal(await contents(), hidden);
     });
     await check("Enter on a rendered link does not invoke review controls", async () => {
       const text = "Intro.\n\nA {~~[old label](Target.md)~>[new label](Other.md)~~} link.\n\nTail.\n";
       await setFixture(page, text, "live"); await ready("live", 1);
-      await page.locator(".markdown-source-view .inline-diff-after a.internal-link").focus();
+      await page.locator(".markdown-source-view [data-inline-diff-side=after] a.internal-link").focus();
       await page.evaluate(() => document.activeElement.addEventListener("keydown", event => queueMicrotask(() => { globalThis.qaLinkPrevented = event.defaultPrevented; }), { once: true }));
       await page.keyboard.press("Enter");
       assert.equal(await page.evaluate(() => globalThis.qaLinkPrevented), false);
@@ -728,15 +744,14 @@ try {
         if (statusLayout) equalBounds(statusLayout, await bounds(mode));
         if (mode !== "source") {
           const scope = page.locator(mode === "reading" ? ".markdown-reading-view" : ".markdown-source-view");
-          const colours = await scope.locator(".inline-diff-review .inline-diff-side").evaluateAll(elements => elements.map(element => {
+          const colours = await scope.locator(".inline-diff-changed").evaluateAll(elements => elements.map(element => {
             const canvas = element.ownerDocument.createElement("canvas"); canvas.width = canvas.height = 1;
-            const context = canvas.getContext("2d"); context.fillStyle = getComputedStyle(element).backgroundColor; context.fillRect(0, 0, 1, 1);
-            return { before: element.classList.contains("inline-diff-before"), rgba: [...context.getImageData(0, 0, 1, 1).data] };
+            const context = canvas.getContext("2d"); context.fillStyle = getComputedStyle(element).backgroundColor; context.fillRect(0,0,1,1);
+            return {before:element.closest("[data-inline-diff-side]").dataset.inlineDiffSide === "before",rgba:[...context.getImageData(0,0,1,1).data]};
           }));
-          assert.equal(colours.length, 4);
-          for (const { before, rgba: [red, green, blue, alpha] } of colours) {
-            assert.ok(alpha > 0 && alpha <= 32, "whole-block tint must be visible and very light");
-            assert.ok(before ? red > green && red > blue : green > red && green > blue, "before/after panels must have red/green tints");
+          assert.ok(colours.length >= 3);
+          for(const {before,rgba:[red,green,blue,alpha]} of colours){
+            assert.ok(alpha>0, "local change colour is visible"); assert.ok(before ? red>green&&red>blue : green>red&&green>blue);
           }
         }
         if (mode === "reading") {
@@ -778,14 +793,10 @@ try {
           assert.deepEqual([diff.outer.margin[0], diff.outer.margin[2]], [0, 0], "no extra outer vertical margin");
           assert.deepEqual(diff.outer.border, [0, 0, 0, 0], "no surrounding frame");
           assert.equal(diff.outer.shadow, "none", "no frame shadow");
-          assert.deepEqual(diff.sideBorders, [[0, 0, 0, 3], [0, 0, 0, 3]], "only the coloured left borders remain");
-          close(diff.content[0].rect[1] - diff.block[1], 8, "original top padding");
-          close(diff.block[1] + diff.block[3] - diff.content[1].rect[1] - diff.content[1].rect[3], 8, "original bottom padding");
-          close(diff.block[3], diff.content[0].rect[3] + diff.content[1].rect[3] + 32, "only original vertical padding adds height");
-          for (const actual of diff.content) {
-            close(actual.rect[0] - diff.block[0], 15, "original left padding and indicator");
-            close(diff.block[0] + diff.block[2] - actual.rect[0] - actual.rect[2], 12, "original right padding");
-          }
+          assert.deepEqual(diff.sideBorders, [[0,0,0,3],[0,0,0,3]], "both complete sides retain their coloured left border");
+          assert.equal(diff.content.length, 2, "a whole-paragraph proposal retains two complete paragraphs");
+          close(diff.content[0].rect[0] - diff.block[0], 15, "panel border and padding alignment");
+          close(diff.content[0].rect[2], diff.block[2] - 27, "full panel content width");
           await setFixture(page, wrap(`{~~${before}~>${after}~~}`), mode); await ready(mode, 1); await proseGeometry(mode);
           const layout = await bounds(mode);
           if (mode === "live") await hoverFirst("live"); else await page.locator(".markdown-reading-view .inline-diff-review").hover();
@@ -804,13 +815,11 @@ try {
         await page.setViewportSize({ width: 1280, height: 900 });
         const wrap = text => `Intro.\n\n${text}\n\nTail.\n`;
         await setFixture(page, wrap(build("{~~old~>new~~}")), mode); await ready(mode, 1);
-        const before = await calloutGeometry(mode, "before"), after = await calloutGeometry(mode, "after");
-        if (!theme && palette === "light" && name === "paragraphs") await page.screenshot({ path: path.resolve(".qa", `callout-spacing-${mode}.png`) });
-        await setFixture(page, wrap(build("old")), mode); const nativeBefore = await calloutGeometry(mode, undefined, before.width);
-        await setFixture(page, wrap(build("new")), mode); const nativeAfter = await calloutGeometry(mode, undefined, after.width);
-        equalCallouts(before, nativeBefore); equalCallouts(after, nativeAfter);
+        const geometries = await renderedGeometry(mode, build("old"), build("new"));
+        for (const result of geometries) equalRenderedGeometry(result);
+        assert.equal(await page.locator(`${mode === "reading" ? ".markdown-reading-view" : ".markdown-source-view"} .inline-diff-content .callout`).count(), name === "nested" ? 2 : 1);
         measurements.callouts ??= {};
-        measurements.callouts[`${theme || "Default"}/${palette}/${mode}/${name}`] = { beforeHeight: before.nodes[0].rect[3], afterHeight: after.nodes[0].rect[3], nativeBeforeHeight: nativeBefore.nodes[0].rect[3], nativeAfterHeight: nativeAfter.nodes[0].rect[3] };
+        measurements.callouts[`${theme || "Default"}/${palette}/${mode}/${name}`] = geometries.map(result=>({height:result.actual.nodes[0].rect[3],nativeHeight:result.expected.nodes[0].rect[3]}));
       });
       }
       const layouts = [{ id: "section", before: sectionBefore, after: sectionAfter }];
@@ -844,7 +853,7 @@ try {
           }, mode);
           const layout = await bounds(mode); await page.mouse.move(point.x, point.y);
           if (mode === "reading") assert.equal(await page.locator(".inline-diff-toolbar").count(), 0);
-          else await page.locator(".inline-diff-toolbar:visible").waitFor();
+          else await hoverFirst("live");
           equalBounds(layout, await bounds(mode));
           assert.equal(await contents(), proposal.source);
           assert.equal(await fs.readFile(path.join(session.vault, "Review.md"), "utf8"), proposal.source);
@@ -863,7 +872,7 @@ try {
       ["paragraph", text => text],
       ["callout", text => `> [!note] Service\n> ${text}`],
       ["table", text => `| Service | Behaviour |\n| --- | --- |\n| Worker | ${text} |`],
-    ]) await check(`${name}/${width}px keeps one block toolbar across all word highlights`, async () => {
+    ]) await check(`${name}/${width}px anchors its toolbar to each changed passage`, async () => {
       const before = "The service starts slowly and uses old settings. It retries twice before stopping.";
       const after = "The service boots quickly and loads new settings. It retries four times before pausing.";
       const marker = `{~~${before}~>${after}~~}`;
@@ -872,17 +881,19 @@ try {
       await setFixture(page, text, "live"); await ready("live", 1); await prepareHover("live");
       const block = page.locator(".markdown-source-view .inline-diff-review");
       const layout = await bounds("live");
-      await block.hover({ position: { x: 6, y: 8 } });
-      await page.locator(".inline-diff-toolbar:visible").waitFor();
-      const initial = await blockToolbarPosition(block);
+      await hoverFirst("live");
+      await blockToolbarPosition(block);
       const highlights = block.locator(".inline-diff-changed");
       assert.ok(await highlights.count() >= 4);
       for (const highlight of await highlights.all()) {
+        // Approach each passage from outside the document so an existing
+        // floating toolbar over a neighbouring line does not receive the hover.
+        await page.mouse.move(5, 5); await page.waitForFunction(() => !document.querySelector(".inline-diff-toolbar"));
         await highlight.hover();
         assert.equal(await page.locator(".inline-diff-toolbar:visible").count(), 1);
         assert.equal(await page.locator(".inline-diff-toolbar button").count(), 2);
         const current = await blockToolbarPosition(block);
-        assert.ok(Math.abs(current.left - initial.left) <= .5 && Math.abs(current.top - initial.top) <= .5, "moving across highlights must not move the toolbar");
+        assert.ok(Number.isFinite(current.left) && Number.isFinite(current.top));
       }
       equalBounds(layout, await bounds("live"));
       if (name === "paragraph" && width === 1280) await page.screenshot({ path: path.resolve(".qa", "block-toolbar-live.png") });
@@ -906,20 +917,17 @@ try {
     });
     await check("shared table proposals resolve independently", async () => {
       await setFixture(page, source, "live"); await ready("live");
-      await page.locator(".markdown-source-view .inline-diff-review").first().hover();
-      await page.locator(".markdown-source-view .inline-diff-review").first().locator(".inline-diff-proposal-anchor").nth(1).hover();
-      await blockToolbarPosition(page.locator(".markdown-source-view .inline-diff-review").first());
-      for (const highlight of await page.locator(".markdown-source-view .inline-diff-review").first().locator(".inline-diff-changed").all()) {
-        await highlight.hover();
-        await blockToolbarPosition(page.locator(".markdown-source-view .inline-diff-review").first());
-      }
+      const anchor = page.locator(".markdown-source-view .inline-diff-hunk-anchor[tabindex]").nth(1);
+      await anchor.hover();
+      const identity = await anchor.getAttribute("data-inline-diff-id");
+      assert.equal(await page.locator(`.markdown-source-view .inline-diff-unit[data-inline-diff-id="${identity}"]`).count(), 1);
       await page.locator(".inline-diff-toolbar:visible [data-decision=accept]").click();
       await page.evaluate(() => app.plugins.plugins["inline-diff"].lastResolution);
       assert.equal(await contents(), source.replace("{~~old~>second~~}", "second"));
     });
     await check("keyboard focus reaches icon buttons and Escape restores the proposal", async () => {
       await setFixture(page, source, "live"); await ready("live");
-      const anchor = page.locator(".markdown-source-view .inline-diff-proposal-anchor").first(); await anchor.focus();
+      const anchor = page.locator(".markdown-source-view .inline-diff-hunk-anchor[tabindex]").first(); await anchor.focus();
       await page.keyboard.press("Enter");
       assert.equal(await page.evaluate(() => document.activeElement?.getAttribute("aria-label")), "Accept change");
       await page.keyboard.press("Escape"); assert.equal(await anchor.evaluate(el => el === el.ownerDocument.activeElement), true);
@@ -1136,14 +1144,14 @@ try {
           const root = mode === "reading" ? ".markdown-reading-view" : ".markdown-source-view";
           const embed = page.locator(`${root} .markdown-embed-content .inline-diff-review[data-inline-diff-ready=true]`);
           await embed.waitFor(); await embed.hover();
-          assert.equal(await embed.locator(".inline-diff-proposal-anchor,[data-decision]").count(), 0);
+          assert.equal(await embed.locator(".inline-diff-hunk-anchor[tabindex],[data-decision]").count(), 0);
           assert.equal(await page.locator(".inline-diff-toolbar:visible").count(), 0);
         }
         const link = page.locator(".markdown-reading-view .markdown-preview-sizer > .el-p a.internal-link").last();
         await page.keyboard.down("Meta");
         try {
           await link.hover(); await page.locator(".hover-popover").waitFor();
-          assert.equal(await page.locator(".hover-popover .inline-diff-proposal-anchor,.hover-popover [data-decision]").count(), 0);
+          assert.equal(await page.locator(".hover-popover .inline-diff-hunk-anchor[tabindex],.hover-popover [data-decision]").count(), 0);
           await page.locator(".hover-popover").hover();
           assert.equal(await page.locator(".inline-diff-toolbar:visible").count(), 0);
         } finally { await page.keyboard.up("Meta"); await page.mouse.move(5, 5); }
@@ -1189,7 +1197,7 @@ try {
         await prepare();
         if (mode === "reading") {
           assert.equal(await execute("accept-all-changes"), false); assert.equal(await contents(), fixture.source);
-          assert.equal(await page.locator(".markdown-reading-view [data-decision],.markdown-reading-view .inline-diff-proposal-anchor").count(), 0);
+          assert.equal(await page.locator(".markdown-reading-view [data-decision],.markdown-reading-view .inline-diff-hunk-anchor[tabindex]").count(), 0);
         } else for (const [decision, expected] of [["accept", fixture.after], ["reject", fixture.before]]) {
           await prepare(); assert.equal(await execute(`${decision}-all-changes`), true);
           assert.equal(await contents(), expected, `${fixture.id}/${mode}/${decision}`);
@@ -1219,7 +1227,7 @@ try {
       for (const mode of ["live", "reading"]) {
         await setFixture(page, text, mode); await ready(mode, 1);
         const refs = await page.locator(`${mode === "reading" ? ".markdown-reading-view" : ".markdown-source-view"} .inline-diff-content .footnote-ref`).allTextContents();
-        assert.deepEqual(refs, ["[2]", "[2]"]);
+        assert.deepEqual(refs, ["[2]"]);
       }
     });
     await check("reference definitions inside code cannot override real document references", async () => {
@@ -1228,7 +1236,7 @@ try {
         await setFixture(page, text, mode); await ready(mode, 1);
         const scope = mode === "reading" ? ".markdown-reading-view" : ".markdown-source-view";
         const destinations = await page.locator(`${scope} .inline-diff-content a`).evaluateAll(links => links.map(link => link.getAttribute("href")));
-        assert.deepEqual(destinations, ["Target.md", "Target.md"]);
+        assert.deepEqual(destinations, ["Target.md"]);
       }
     });
     await check("configured colours apply in all views", async () => {
@@ -1319,7 +1327,7 @@ try {
       await page.locator(".inline-diff-review .callout-title").first().click();
       const png = await fs.readFile(path.join(session.vault, "pixel.png")); await fs.writeFile(path.join(session.vault, "Late.png"), png);
       await page.waitForFunction(() => [...document.querySelectorAll('.inline-diff-review img')].some(image => image.complete && image.naturalWidth > 0));
-      await page.locator(".inline-diff-proposal-anchor").first().scrollIntoViewIfNeeded(); await hoverFirst("live");
+      await page.locator(".inline-diff-hunk-anchor[tabindex]").first().scrollIntoViewIfNeeded(); await hoverFirst("live");
       await page.evaluate(() => { app.workspace.activeLeaf.view.contentEl.querySelector(".cm-scroller").scrollTop = 500; });
       await page.waitForFunction(() => !document.querySelector(".inline-diff-toolbar:not([hidden])"));
     });
@@ -1329,13 +1337,13 @@ try {
       await fs.copyFile(path.join(session.vault, "pixel.png"), path.join(session.vault, "LateLayout.png"));
       await page.waitForFunction(() => [...document.querySelectorAll('.markdown-source-view img')].some(image => image.complete && image.naturalWidth > 0));
       await page.waitForFunction(() => {
-        const anchor = document.querySelector(".markdown-source-view .inline-diff-proposal-anchor");
+        const anchor = document.querySelector(".markdown-source-view .inline-diff-hunk-anchor[tabindex]");
         const toolbar = document.querySelector(".inline-diff-toolbar");
         const pane = app.workspace.activeLeaf.view.contentEl.querySelector(".cm-scroller").getBoundingClientRect(), rect = anchor.getBoundingClientRect();
         if (rect.top > pane.bottom || rect.bottom < pane.top) return !toolbar;
         if (!toolbar) return false;
         const box = toolbar.getBoundingClientRect(), expected = Math.max(pane.top + 4, Math.min(rect.top - box.height + 4, pane.bottom - box.height - 4, innerHeight - box.height - 4));
-        return Math.abs(box.top - expected) <= .5;
+        return Math.abs(box.top - expected) <= .5 || Math.abs(box.top - rect.bottom - 4) <= .5;
       });
     });
   }
@@ -1356,7 +1364,7 @@ try {
       if (popup) break; await new Promise(resolve => setTimeout(resolve, 50));
     }
     assert.ok(popup, "native popout page");
-    await popup.waitForSelector(".inline-diff-proposal-anchor"); await popup.locator(".inline-diff-review").first().hover(); await popup.locator(".inline-diff-proposal-anchor").first().hover();
+    await popup.waitForSelector(".inline-diff-hunk-anchor[tabindex]"); await popup.locator(".inline-diff-review").first().hover(); await popup.locator(".inline-diff-hunk-anchor[tabindex]").first().hover();
     await popup.locator(".inline-diff-toolbar:visible [data-decision=accept]").click();
     await page.evaluate(() => app.plugins.plugins["inline-diff"].lastResolution);
     assert.equal(await page.evaluate(() => qaPopoutLeaf.view.editor.getValue()), source.replace("{~~old~>new~~}", "new"));
@@ -1370,7 +1378,7 @@ try {
       for (const mode of ["source", "live"]) {
         await setFixture(page, source, mode); await ready(mode); await prepareHover(mode);
         const result = await page.evaluate(async mode => {
-          const anchor = document.querySelector(mode === "source" ? ".cm-content .inline-diff-source-mark" : ".markdown-source-view .inline-diff-proposal-anchor");
+          const anchor = document.querySelector(mode === "source" ? ".cm-content .inline-diff-source-mark" : ".markdown-source-view .inline-diff-hunk-anchor[tabindex]");
           const times = [];
           for (let i = 0; i < 20; i++) {
             const start = performance.now();
@@ -1428,7 +1436,7 @@ try {
   await fs.writeFile(path.resolve(".qa", "interaction-failure-state.json"), JSON.stringify(await page.evaluate(() => {
     const view = app.workspace.activeLeaf.view;
     const root = view.contentEl;
-    return { source: view.getViewData(), mode: view.getMode(), scroll: [...root.querySelectorAll(".cm-scroller,.markdown-preview-view")].map(el => ({ class: el.className, top: el.scrollTop, height: el.clientHeight })), blocks: [...root.querySelectorAll(".inline-diff-review")].map(el => ({ rect: el.getBoundingClientRect().toJSON(), anchors: [...el.querySelectorAll(".inline-diff-proposal-anchor")].map(a => a.getBoundingClientRect().toJSON()) })), status: document.querySelector(".inline-diff-review-bar")?.outerHTML };
+    return { source: view.getViewData(), mode: view.getMode(), scroll: [...root.querySelectorAll(".cm-scroller,.markdown-preview-view")].map(el => ({ class: el.className, top: el.scrollTop, height: el.clientHeight })), blocks: [...root.querySelectorAll(".inline-diff-review")].map(el => ({ rect: el.getBoundingClientRect().toJSON(), anchors: [...el.querySelectorAll(".inline-diff-hunk-anchor[tabindex]")].map(a => a.getBoundingClientRect().toJSON()) })), status: document.querySelector(".inline-diff-review-bar")?.outerHTML };
   }), null, 2));
   throw error;
 } finally {

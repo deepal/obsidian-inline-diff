@@ -1,6 +1,7 @@
 import { foldedRanges, unfoldEffect } from "@codemirror/language";
 import { EditorView } from "@codemirror/view";
 import { Component, editorLivePreviewField, Notice, type MarkdownView } from "obsidian";
+import { reviewAnchors } from "./unified";
 import { revealComparisons } from "./editor";
 import { lineOffsets, parseNote, reviewGroups, type Proposal } from "./model";
 import { normalizedText } from "./serialization";
@@ -114,22 +115,32 @@ export class ChangeNavigator extends Component implements NavigationController {
         await this.frame(win);
         if (!this.valid(snapshot, mode, generation)) return;
         const surface = this.scroller(view);
-        const selector = groupId ? ".inline-diff-review[data-inline-diff-ready=true]" : ".inline-diff-source-mark";
-        const elements = [...view.contentEl.querySelectorAll<HTMLElement>(selector)].filter(element => surface?.contains(element) &&
-          (groupId ? element.dataset.inlineDiffGroup === groupId : element.dataset.inlineDiffId === proposal.id));
+        const elements = groupId ? reviewAnchors(view.contentEl, proposal.id).filter(element => surface?.contains(element)) :
+          [...view.contentEl.querySelectorAll<HTMLElement>(".inline-diff-source-mark")].filter(element => surface?.contains(element) && element.dataset.inlineDiffId === proposal.id);
         const target = elements.find(element => element.getBoundingClientRect().height > 0);
         if (!surface || !target) { stable = 0; continue; }
-        // Adjust only this pane's vertical scroller, preserving horizontal position.
+        // Reveal an edit inside native horizontally scrolling tables before alignment.
+        for (let parent = target.parentElement; parent && parent !== surface; parent = parent.parentElement) {
+          if (parent.scrollWidth > parent.clientWidth && /auto|scroll/.test(win.getComputedStyle(parent).overflowX)) {
+            const box = parent.getBoundingClientRect(), edit = target.getBoundingClientRect();
+            if (edit.left < box.left + 8) parent.scrollLeft += edit.left - box.left - 8;
+            else if (edit.right > box.right - 8) parent.scrollLeft += Math.min(edit.right - box.right + 8, edit.left - box.left - 8);
+          }
+        }
         const delta = target.getBoundingClientRect().top - surface.getBoundingClientRect().top - 16;
         surface.scrollTop += delta;
         const top = target.getBoundingClientRect().top;
         stable = Math.abs(top - previousTop) < .5 ? stable + 1 : 0;
         previousTop = top;
         if (stable < 3) continue;
+        // Native line reveal flashes its whole preview section. Once the exact
+        // pair is ready, leave only our proposal-sized destination outline.
+        target.closest(".is-flashing")?.classList.remove("is-flashing");
         this.surface = surface; this.scrollTop = surface.scrollTop;
         this.previous = index; this.message = `Change ${index + 1} of ${snapshot.pending}`;
-        for (const element of elements) element.classList.add("inline-diff-navigation-target");
-        this.highlights = elements;
+        const destination = target.dataset.inlineDiffHunk ? elements.filter(element => element.dataset.inlineDiffHunk === target.dataset.inlineDiffHunk) : elements;
+        for (const element of destination) element.classList.add("inline-diff-navigation-target");
+        this.highlights = destination;
         const timer = win.setTimeout(() => this.clearTarget(), 1500);
         this.clearHighlight = () => win.clearTimeout(timer);
         return;
@@ -152,7 +163,7 @@ export class ChangeNavigator extends Component implements NavigationController {
   private bind(host: HTMLElement): void {
     this.inputHost = host;
     const manual = () => { this.reset(); this.changed(); };
-    this.registerDomEvent(host, "wheel", event => { if (event.deltaY) manual(); }, { passive: true, capture: true });
+    this.registerDomEvent(host, "wheel", event => { if (event.deltaX || event.deltaY) manual(); }, { passive: true, capture: true });
     this.registerDomEvent(host, "touchstart", event => {
       if (!(event.target as Element).closest(".inline-diff-review-bar")) manual();
     }, { passive: true });
@@ -160,11 +171,14 @@ export class ChangeNavigator extends Component implements NavigationController {
       if (!(event.target as Element).closest(".inline-diff-review-bar")) manual();
     }, true);
     this.registerDomEvent(host, "keydown", event => {
-      if (["PageUp", "PageDown", "Home", "End", "ArrowUp", "ArrowDown", " "].includes(event.key) && !(event.target as Element).closest(".inline-diff-review-bar")) manual();
+      if (["PageUp", "PageDown", "Home", "End", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(event.key) && !(event.target as Element).closest(".inline-diff-review-bar")) manual();
     }, true);
     this.registerDomEvent(host, "scroll", event => {
       const surface = this.surface;
-      if (!this.busy && surface && event.target === surface && Math.abs(surface.scrollTop - this.scrollTop) > 1) manual();
+      if (!this.busy && surface) {
+        if (event.target === surface && Math.abs(surface.scrollTop - this.scrollTop) > 1) manual();
+        else if (event.target instanceof host.ownerDocument.defaultView!.HTMLElement && surface.contains(event.target) && event.target !== surface) manual();
+      }
     }, true);
   }
 
@@ -192,3 +206,5 @@ export class ChangeNavigator extends Component implements NavigationController {
     this.surface = null;
   }
 }
+
+export { registerReviewAnchors, ownReviewElement } from "./unified";

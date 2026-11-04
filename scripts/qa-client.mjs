@@ -116,10 +116,23 @@ module.exports = class extends o.Plugin {
     for(let parent=actual.parentElement;parent;parent=parent.parentElement)if(parent.matches('.markdown-source-view,.markdown-reading-view,.markdown-preview-view,.markdown-preview-sizer,.markdown-preview-section'))context.unshift(parent.className);
     const oracle = await this.render(markdown, {geometry:true,width:actual.getBoundingClientRect().width,typography,sourcePath,context});
     try {
-     if (!markdown.trim()) { const empty = document.createElement('span'); empty.className='inline-diff-empty';empty.textContent='Empty';oracle.root.append(empty); }
+     // Pending callouts are revealed by the unified renderer; compare the same
+     // open state through the native renderer rather than a collapsed oracle.
+     for(const callout of oracle.root.querySelectorAll('.callout.is-collapsed')) {
+      callout.classList.remove('is-collapsed'); const content=callout.querySelector(':scope > .callout-content');
+      if(content){content.style.removeProperty('display');content.style.removeProperty('height');}
+     }
      const measure = root => {
       const origin=root.getBoundingClientRect(), selector='h1,h2,h3,h4,h5,h6,p,ul,ol,li,blockquote,.callout,.callout-title,.callout-content,table,thead,tbody,tfoot,tr,th,td,pre,code,hr,.math';
-      return {text:root.textContent, nodes:[root,...root.querySelectorAll(selector)].map(element=>{
+      const renderedText = element => {
+       const walker=document.createTreeWalker(element,NodeFilter.SHOW_TEXT),parts=[];let node;
+       while((node=walker.nextNode())) {
+        const parent=node.parentElement, block=e=>e&&/^(P|H[1-6]|UL|OL|LI|BLOCKQUOTE|TABLE|THEAD|TBODY|TFOOT|TR|TD|TH|PRE|DIV|SECTION|HR)$/.test(e.tagName);
+        const separator=/^[\\t\\n\\f\\r ]+$/.test(node.data)&&!parent.closest('pre,code,textarea,math,mjx-container,svg')&&!/^(pre|pre-wrap|pre-line|break-spaces)$/.test(getComputedStyle(parent).whiteSpace)&&(parent===root||parent.matches('ul,ol,table,thead,tbody,tfoot,tr,colgroup')||block(node.previousElementSibling)||block(node.nextElementSibling));
+        if(!separator)parts.push(node.data);
+       }return parts.join('');
+      };
+      return {text:renderedText(root), nodes:[root,...root.querySelectorAll(selector)].map(element=>{
        const box=element.getBoundingClientRect(), css=getComputedStyle(element), lines=[], walker=document.createTreeWalker(element,NodeFilter.SHOW_TEXT);
        let node;while((node=walker.nextNode())){const range=document.createRange();range.selectNodeContents(node);for(const r of range.getClientRects()){
         if(!r.width||!r.height)continue;
@@ -134,7 +147,7 @@ module.exports = class extends o.Plugin {
      let previous='',stable=0;const deadline=performance.now()+10000;
      while(performance.now()<deadline){
       await new Promise(resolve=>requestAnimationFrame(resolve));
-      const result={actual:measure(actual),expected:measure(oracle.root)},serialized=JSON.stringify(result);
+      const result={actual:measure(actual),expected:measure(oracle.root),html:{actual:actual.outerHTML,expected:oracle.root.outerHTML}},serialized=JSON.stringify(result);
       stable=serialized===previous&&document.fonts.status==='loaded'?stable+1:0;
       if(stable>=12)return result;
       previous=serialized;

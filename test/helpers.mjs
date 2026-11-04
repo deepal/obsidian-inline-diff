@@ -35,6 +35,8 @@ export async function importHostModule(entry) {
 export function dom() {
   const dom = new JSDOM("<!doctype html><html><body></body></html>", { pretendToBeVisual: true });
   const win = dom.window;
+  Object.defineProperty(win.Document.prototype, "win", { get() { return win; } });
+  win.createSpan = () => win.document.createElement("span");
   win.ResizeObserver = class { observe() {} disconnect() {} };
   Object.defineProperty(win.HTMLElement.prototype, "win", { get() { return win; } });
   win.HTMLElement.prototype.setCssProps = function(values) { for (const [name, value] of Object.entries(values)) this.style.setProperty(name, value); };

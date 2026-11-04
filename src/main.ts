@@ -20,7 +20,7 @@ function isCellOwner(value: unknown): value is CellOwner {
 export default class InlineDiffPlugin extends Plugin {
   settings: DiffSettings = { ...defaults };
   settingsVersion = 0;
-  readonly buildIdentity = `inline-diff:${this.manifest.version}:change-navigation`;
+  readonly buildIdentity = `inline-diff:${this.manifest.version}:proposal-comparisons`;
   private overlays = new Map<Document, ReviewOverlay>();
   private reading!: ReadingCoordinator;
   private formats!: FormatPreserver;
@@ -222,7 +222,9 @@ export default class InlineDiffPlugin extends Plugin {
       new Notice("The note format changed. Review the refreshed proposal and try again."); return;
     }
     this.formats.preserve(view, original, serialized);
-    cm.dispatch({ changes: { from, to, insert }, annotations: isolateHistory.of("full") });
+    // The exact captured source transform is already validated. Native typing
+    // filters may otherwise renumber unrelated ordered-list items.
+    cm.dispatch({ changes: { from, to, insert }, filter: false, annotations: isolateHistory.of("full") });
   }
 
   async saveSettings(): Promise<void> {

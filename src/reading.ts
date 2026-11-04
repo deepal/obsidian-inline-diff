@@ -121,7 +121,7 @@ export class ReadingCoordinator extends Component {
       if (!first) continue;
       let comparison = state.comparisons.find(comparison => comparison.group.id === group.id);
       if (!comparison) {
-        comparison = new Comparison(this.plugin.app, state.root.ownerDocument, this.plugin, note, group, state.sourcePath, null, this.plugin.settings);
+        comparison = new Comparison(this.plugin.app, state.root.ownerDocument, this.plugin, note, group, state.sourcePath, null, this.plugin.settings, { mode: "reading" });
         this.addChild(comparison); state.comparisons.push(comparison);
       }
       // The native preview renderer owns section siblings and may discard an

@@ -85,7 +85,7 @@ module.exports = class extends o.Plugin {
    async render(markdown, options = {}) {
     const root = document.createElement('div');
     const host = document.createElement('div');
-    root.className = 'markdown-rendered inline-diff-qa-oracle ' + (options.geometry ? 'inline-diff-content' : 'inline-diff-review');
+    root.className = (options.geometry && options.renderedBoundary === false ? '' : 'markdown-rendered ') + 'inline-diff-qa-oracle ' + (options.geometry ? 'inline-diff-content' : 'inline-diff-review');
     root.style.cssText = 'position:fixed;left:-10000px;width:600px;top:0';
     if (options.geometry) {
      root.style.width = options.width + 'px';
@@ -111,10 +111,14 @@ module.exports = class extends o.Plugin {
     const style = getComputedStyle(actual), typography = {};
     for (const name of ['font-family','font-size','font-weight','font-feature-settings','font-variation-settings','line-height','letter-spacing','word-spacing','direction','text-align','text-indent','tab-size','overflow-wrap','word-break']) typography[name] = style.getPropertyValue(name);
     // Preserve unitless inheritance when inline code uses a smaller font.
-    typography['line-height'] = actual.computedStyleMap().get('line-height').toString();
+    const lineHeight = actual.computedStyleMap().get('line-height');
+    // Chromium's Typed OM can return an ancestor's percentage result for an
+    // empty, non-rendered projection. Retain unitless inheritance only when it
+    // agrees with the element's resolved style, including empty alternatives.
+    typography['line-height'] = lineHeight.unit === 'number' && Math.abs(lineHeight.value * parseFloat(style.fontSize) - parseFloat(style.lineHeight)) < .01 ? lineHeight.toString() : style.lineHeight;
     const context=[];
     for(let parent=actual.parentElement;parent;parent=parent.parentElement)if(parent.matches('.markdown-source-view,.markdown-reading-view,.markdown-preview-view,.markdown-preview-sizer,.markdown-preview-section'))context.unshift(parent.className);
-    const oracle = await this.render(markdown, {geometry:true,width:actual.getBoundingClientRect().width,typography,sourcePath,context});
+    const oracle = await this.render(markdown, {geometry:true,renderedBoundary:actual.matches('.markdown-rendered'),width:actual.getBoundingClientRect().width,typography,sourcePath,context});
     try {
      // Pending callouts are revealed by the unified renderer; compare the same
      // open state through the native renderer rather than a collapsed oracle.
@@ -158,6 +162,7 @@ module.exports = class extends o.Plugin {
    undo(view) { return view.editor.undo(); },
    redo(view) { return view.editor.redo(); },
    historyDepth(view) { const c=require('@codemirror/commands'); return {undo:c.undoDepth(view.editor.cm.state),redo:c.redoDepth(view.editor.cm.state)}; },
+   redraw(view) { const s=require('@codemirror/state'),v=require('@codemirror/view'); view.editor.cm.dispatch({effects:s.StateEffect.appendConfig.of(v.EditorView.contentAttributes.of({'data-qa-redraw':'true'}))}); },
   };
  }
  onunload() { delete globalThis.inlineDiffQa; }

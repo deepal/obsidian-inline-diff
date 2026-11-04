@@ -3,6 +3,7 @@ import { Component, MarkdownRenderer, type App, type MarkdownView } from "obsidi
 import { project, reviewUnits, type ParsedNote, type Proposal, type ReviewGroup } from "./model";
 import { applyColours, type DiffSettings } from "./settings";
 import type InlineDiffPlugin from "./main";
+import { adaptLiveTables, liveTables, type PresentationContext } from "./presentation";
 
 const contexts = new WeakMap<ParsedNote, { before: string; after: string; hasReferences: boolean }>();
 function documentContext(note: ParsedNote) {
@@ -35,24 +36,11 @@ function structuralSeparators(root: HTMLElement): Set<Text> {
     if (!element) return false;
     return /^(block|flow-root|list-item|flex|grid|table)(\s|-|$)/.test(win.getComputedStyle(element).display);
   };
-  // Obsidian can render existing panes before reloading the plugin stylesheet.
-  // Measure using the comparison's intended whitespace even during that gap.
-  const previous = root.getAttribute("style");
-  root.setCssStyles({ whiteSpace: "normal" });
-  try {
-    for (const node of textNodes(root)) {
-      // NBSP and other Unicode spaces can be meaningful rendered content.
-      if (!/^[\t\n\f\r ]+$/.test(node.data)) continue;
-      let preserved = false;
-      for (let parent = node.parentElement; parent; parent = parent.parentElement) {
-        if (parent.matches("pre,code,textarea,math,mjx-container,svg") || /^(pre|pre-wrap|pre-line|break-spaces)$/.test(win.getComputedStyle(parent).whiteSpace)) { preserved = true; break; }
-        if (parent === root) break;
-      }
-      if (!preserved && (node.parentElement?.matches("ul,ol,table,thead,tbody,tfoot,tr,colgroup") || block(node.previousElementSibling) || block(node.nextElementSibling))) separators.add(node);
-    }
-  } finally {
-    if (previous === null) root.removeAttribute("style");
-    else root.setAttribute("style", previous);
+  for (const node of textNodes(root)) {
+    // Renderer indentation between blocks is not Markdown content. Preserve
+    // real code/preformatted payload and Unicode spaces without changing CSS.
+    if (!/^[\t\n\f\r ]+$/.test(node.data) || node.parentElement?.closest("pre,code,textarea,math,mjx-container,svg")) continue;
+    if (node.parentElement?.matches("ul,ol,table,thead,tbody,tfoot,tr,colgroup") || block(node.previousElementSibling) || block(node.nextElementSibling)) separators.add(node);
   }
   return separators;
 }
@@ -154,7 +142,7 @@ export class Comparison extends Component {
   constructor(
     app: App, doc: Document, private plugin: InlineDiffPlugin,
     note: ParsedNote, readonly group: ReviewGroup, sourcePath: string,
-    view: MarkdownView | null, settings: DiffSettings,
+    view: MarkdownView | null, settings: DiffSettings, presentation: PresentationContext,
   ) {
     super();
     const root = doc.createElement("section");
@@ -164,7 +152,9 @@ export class Comparison extends Component {
     root.setAttribute("role", "group"); root.setAttribute("aria-label", "Proposed changes");
     for (const diagnostic of note.diagnostics.filter(diagnostic => diagnostic.from < group.to && diagnostic.to > group.from)) root.createDiv({ cls: "inline-diff-error inline-diff-diagnostic-banner", text: diagnostic.message });
     const file = view?.file ?? null, units = reviewUnits(note, group), referenceNamespace = crypto.randomUUID();
-    const body = () => { const element = doc.createElement("div"); element.className = "inline-diff-content markdown-rendered"; return element; };
+    // Reading panes and embeds already supply their native rendered boundary.
+    // A nested one would reapply snippet typography below the preview sizer.
+    const body = () => { const element = doc.createElement("div"); element.className = "inline-diff-content" + (presentation.mode === "live" ? " markdown-rendered" : ""); return element; };
     const oldBody = body(), newBody = body();
     if (view) {
       const show = (event: Event) => {
@@ -227,10 +217,19 @@ export class Comparison extends Component {
         if (mapping.text === source) return mapping.blocks;
         const marked = body(); await render(marked, mapping.text, decision);
         if (this.cancelled) return new Map<string, Range>();
-        return captureProjection(original, marked, mapping);
+        try { return captureProjection(original, marked, mapping); }
+        catch (error) {
+          // Optional trivia must never prevent an otherwise valid comparison.
+          if (!mapping.trivia?.length) throw error;
+          const fallback = prepareProjection(original, source, units, decision, prefix, false);
+          if (fallback.text === source) return fallback.blocks;
+          const retry = body(); await render(retry, fallback.text, decision);
+          return this.cancelled ? new Map<string, Range>() : captureProjection(original, retry, fallback);
+        }
       };
       const [oldRanges, newRanges] = await Promise.all([capture(oldBody, group.before, "reject"), capture(newBody, group.after, "accept")]);
       if (this.cancelled) return;
+      const tables = presentation.mode === "live" ? [...liveTables(oldBody, group.before), ...liveTables(newBody, group.after)] : [];
       const comparisons = assembleComparisons(oldBody, newBody, units, oldRanges, newRanges);
       // A side that contains native definitions owns its own DOM identities.
       // References to definitions outside a proposal retain the shared context.
@@ -244,6 +243,7 @@ export class Comparison extends Component {
           for (const link of side.querySelectorAll<HTMLAnchorElement>("a[href^='#']")) { const id = ids.get(link.getAttribute("href")!.slice(1)); if (id) link.setAttribute("href",`#${id}`); }
         }
       }
+      adaptLiveTables(tables.filter(table => comparisons.element.contains(table)));
       root.append(comparisons.element);
       const decorate = () => {
         for (const placement of comparisons.placements) {
@@ -281,6 +281,21 @@ export class Comparison extends Component {
       });
       observer.observe(comparisons.element, { childList: true, subtree: true });
       this.register(() => observer.disconnect());
+      if (presentation.requestMeasure) {
+        let frame: number | null = null, width = -1, height = -1;
+        const win = doc.defaultView!;
+        const resize = new win.ResizeObserver(entries => {
+          if (this.cancelled) return;
+          const size = entries[0]?.contentRect;
+          if (!size || (size.width === width && size.height === height)) return;
+          width = size.width; height = size.height;
+          if (frame === null) frame = win.requestAnimationFrame(() => {
+            frame = null; if (!this.cancelled) presentation.requestMeasure?.();
+          });
+        });
+        resize.observe(root);
+        this.register(() => { resize.disconnect(); if (frame !== null) win.cancelAnimationFrame(frame); });
+      }
       root.dataset.inlineDiffReady = "true";
     })().catch((error: unknown) => {
       if (!this.cancelled) {

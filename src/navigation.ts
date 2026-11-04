@@ -3,6 +3,7 @@ import { EditorView } from "@codemirror/view";
 import { Component, editorLivePreviewField, Notice, type MarkdownView } from "obsidian";
 import { reviewAnchors } from "./unified";
 import { revealComparisons } from "./editor";
+import { highlightSource, sourceHighlight } from "./source-highlight";
 import { lineOffsets, parseNote, reviewGroups, type Proposal } from "./model";
 import { normalizedText } from "./serialization";
 import type { NavigationController, NavigationDirection, ReviewSnapshot } from "./status";
@@ -139,10 +140,17 @@ export class ChangeNavigator extends Component implements NavigationController {
         this.surface = surface; this.scrollTop = surface.scrollTop;
         this.previous = index; this.message = `Change ${index + 1} of ${snapshot.pending}`;
         const destination = target.dataset.inlineDiffHunk ? elements.filter(element => element.dataset.inlineDiffHunk === target.dataset.inlineDiffHunk) : elements;
-        for (const element of destination) element.classList.add("inline-diff-navigation-target");
-        this.highlights = destination;
+        const cm = mode === "source" ? this.editorView(view) : null;
+        if (cm) cm.dispatch({ effects: highlightSource.of({ from: proposal.from, to: proposal.to }) });
+        else {
+          for (const element of destination) element.classList.add("inline-diff-navigation-target");
+          this.highlights = destination;
+        }
         const timer = win.setTimeout(() => this.clearTarget(), 1500);
-        this.clearHighlight = () => win.clearTimeout(timer);
+        this.clearHighlight = () => {
+          win.clearTimeout(timer);
+          if (cm?.dom.isConnected && cm.state.field(sourceHighlight, false)) cm.dispatch({ effects: highlightSource.of(null) });
+        };
         return;
       }
       new Notice("Could not reveal the change. Try again after the note finishes rendering.");

@@ -39,7 +39,9 @@ Every review action uses native editor history. One undo restores the proposal. 
 
 Settings expose independent addition/deletion text and background colours, with theme-aware defaults and a reset button. Comparison bodies are display-only, including task checkboxes and generated Bases views. Links and normal media display remain available. Pending changes inside folded callouts are revealed for review.
 
-Rendered comparisons retain native heading, paragraph, and list spacing, including custom line heights. Code and preformatted content retain their native whitespace rules. Math and SVG changes colour the existing rendered elements without inserting spans into their glyph layouts.
+Rendered comparisons inherit their surrounding Markdown typography. Live Preview tables retain native cell-padding hooks; Reading tables and tables inside callouts retain their corresponding rendered structure. Themes and CSS snippets remain authoritative, including runtime changes to padding, fonts and line height. The Before/After panels keep their own default padding and coloured borders, which snippets can customize. Code and preformatted content retain their native whitespace rules. Math and SVG changes colour the existing rendered elements without inserting spans into their glyph layouts.
+
+Spaces and tabs left by closed hidden comments are suppressed only when source mapping proves they form an otherwise empty boundary beside a comparison. Visible text spacing, proposal content, nonbreaking spaces and Markdown hard breaks remain intact. Inline Review Comments 4.2.2 has a separately tracked Live Preview table-avatar overflow; this spacing correction does not resolve that plugin's marker placement.
 
 See the [agent syntax guide](docs/agent-syntax.md) for structural changes, literal constructs, escaping, and exact newline rules.
 
@@ -77,16 +79,19 @@ Enable or reload the plugin in Obsidian after copying a build. Automated validat
 ## Test in real Obsidian
 
 ```sh
-OBSIDIAN_QA_THEME_ROOT="/path/to/installed/themes" npm run test:obsidian
+OBSIDIAN_QA_THEME_ROOT="/path/to/installed/themes" \
+OBSIDIAN_QA_OVERRIDE_FILE="/path/to/current/snippet.css" npm run test:obsidian
 ```
 
-The theme directory must contain Primary, Minimal, and Blue Topaz, each with its `manifest.json` and `theme.css`. Tests copy those assets into a disposable vault. No theme assets are redistributed by this repository.
+The theme directory must contain Primary, Minimal, and Blue Topaz, each with its `manifest.json` and `theme.css`. Tests copy those assets into a disposable vault. The override suite reads the specified snippet unchanged, copies it privately into the disposable vault, and checks that the original bytes remain unchanged. It also tests no snippets and synthetic override profiles. No theme assets or personal snippets are redistributed by this repository.
 
 The runner launches a separate app profile, verifies its disposable-vault identity, and uses a loopback debugger. It compares rich previews with Obsidian's native renderer, exercises actual hover buttons and keyboard input, verifies saved content and undo/redo, and checks themes, layout, multiple panes, popouts, external edits, and performance.
 
+The mandatory suite includes following-content and hidden-comment spacing checks with Inline Review Comments disabled. Run the separate integration diagnostic with `OBSIDIAN_QA_IRC_DIR="/path/to/inline-review-comment" npm run test:obsidian:following`, also supplying `OBSIDIAN_QA_OVERRIDE_FILE`. It retains failing assertions for the known avatar overflow.
+
 Use `OBSIDIAN_EXECUTABLE` to select a different app binary. The default is the standard macOS application location. Run the matrix or interaction suite separately with `npm run test:obsidian:matrix` and `npm run test:obsidian:interactions`. Diagnostic output and screenshots go into ignored `.qa/` files.
 
-See [testing details](CONTRIBUTING.md), the [coverage matrix](docs/coverage.md), [granular rendering verification](docs/granular-testing.md), the [original verification report](docs/test-report.md), [pinned review-bar verification](docs/pinned-review-bar-testing.md), [rendered-spacing verification](docs/rendered-spacing-testing.md), and [change-navigation verification](docs/navigation-testing.md).
+See [testing details](CONTRIBUTING.md), the [coverage matrix](docs/coverage.md), [comment-spacing verification](docs/comment-spacing-testing.md), [native styling and override verification](docs/native-styling-testing.md), [granular rendering verification](docs/granular-testing.md), the [original verification report](docs/test-report.md), [pinned review-bar verification](docs/pinned-review-bar-testing.md), [rendered-spacing verification](docs/rendered-spacing-testing.md), and [change-navigation verification](docs/navigation-testing.md).
 
 ## Releases
 

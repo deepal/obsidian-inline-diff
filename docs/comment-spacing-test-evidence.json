@@ -1,0 +1,4241 @@
+{
+  "date": "2026-11-04T17:32:48.003Z",
+  "artifacts": {
+    "identity": "inline-diff:1.3.1:comment-spacing",
+    "sha256": {
+      "main.js": "04c32ac88c9aae7c31127ccfb7facdff6627dbb7f68bddd027054c07f12f5641",
+      "manifest.json": "66be1ba695af3c1bbb4414c0d278524165a492e79c2496fd10cf6f19add3a388",
+      "styles.css": "2df637cc5ed14afaaf853f75fa596d8063becc3263007bb3d4cc8d0c037dfc53"
+    }
+  },
+  "runtime": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) obsidian/1.15.0 Chrome/150.0.7871.250 Electron/43.8.4 Safari/537.36",
+    "versions": {
+      "node": "24.22.1",
+      "acorn": "8.18.0",
+      "ada": "4.0.0",
+      "amaro": "1.1.11",
+      "ares": "1.34.9",
+      "brotli": "1.2.0",
+      "cldr": "48.0",
+      "icu": "78.2",
+      "llhttp": "9.4.3",
+      "merve": "1.2.2",
+      "modules": "148",
+      "napi": "10",
+      "nbytes": "0.1.4",
+      "ncrypto": "0.0.1",
+      "nghttp2": "1.70.0",
+      "nghttp3": "",
+      "ngtcp2": "",
+      "openssl": "0.0.0",
+      "simdjson": "4.6.11",
+      "simdutf": "7.7.0",
+      "sqlite": "3.53.4",
+      "tz": "2026e",
+      "undici": "7.30.1",
+      "unicode": "17.0",
+      "uv": "1.52.1",
+      "uvwasi": "0.0.23",
+      "v8": "15.0.245.31-electron.0",
+      "zlib": "1.3.2.1-motley",
+      "zstd": "1.6.0",
+      "electron": "43.8.4",
+      "chrome": "150.0.7871.250"
+    }
+  },
+  "obsidian": "1.15.0",
+  "platform": "27.0.1 arm64",
+  "unitTests": 635,
+  "checks": [
+    "lint",
+    "unit/component",
+    "typecheck",
+    "typecheck:browser",
+    "deployment-disabled production build",
+    "git diff --check"
+  ],
+  "suites": {
+    "matrix": {
+      "passed": 1341,
+      "failed": 0,
+      "errors": [],
+      "date": "2026-11-04T17:18:08.167Z"
+    },
+    "interactions": {
+      "passed": 415,
+      "failed": 0,
+      "errors": [],
+      "date": "2026-11-04T17:21:26.621Z"
+    },
+    "navigation": {
+      "passed": 68,
+      "failed": 0,
+      "errors": [],
+      "date": "2026-11-04T17:22:32.046Z"
+    },
+    "granular": {
+      "passed": 38,
+      "failed": 0,
+      "errors": [],
+      "date": "2026-11-04T17:23:05.961Z"
+    },
+    "overrides": {
+      "passed": 870,
+      "failed": 0,
+      "errors": [],
+      "date": "2026-11-04T17:27:53.579Z"
+    },
+    "followingCore": {
+      "passed": 204,
+      "failed": 0,
+      "errors": [],
+      "date": "2026-11-04T17:29:12.001Z"
+    },
+    "followingCombined": {
+      "passed": 388,
+      "failed": 20,
+      "errors": [],
+      "date": "2026-11-04T17:32:48.003Z"
+    }
+  },
+  "ircArtifacts": {
+    "version": "4.2.2",
+    "sha256": {
+      "main.js": "3bbce79384c0279aac1f681c23a699e2db8ce556dd77dbe939d7a726e16e00be",
+      "manifest.json": "008d8d3ee8ec02c222e394ac40d44e06014d6e479c7a24cb9e04b1bcd39bbdf8",
+      "styles.css": "676ef90ca712762eb61d19b3b09ac941e229bff7e54bc8d9f59d73b971c96a26"
+    }
+  },
+  "exactSnippetSha256": "1f6350f0f5c093e6761a270cfcc41609c26c1c46461d0cd31b64675c86f4f36d",
+  "performance": {
+    "runtime": {
+      "obsidian": "1.15.0",
+      "electron": "43.8.4",
+      "chromium": "150.0.7871.250",
+      "node": "24.22.1"
+    },
+    "themes": {
+      "Primary": "2.10.0",
+      "Minimal": "9.1.4",
+      "Blue Topaz": "2026102001"
+    },
+    "hover": {
+      "source": {
+        "p95": 0.39999985694885254,
+        "max": 0.39999985694885254
+      },
+      "live": {
+        "p95": 0.39999985694885254,
+        "max": 0.39999985694885254
+      }
+    },
+    "100000/200": {
+      "initial": 18.600000143051147,
+      "p95": 6.799999952316284,
+      "max": 6.799999952316284,
+      "liveRendered": 4,
+      "readingRendered": 7
+    },
+    "1000000/1000": {
+      "initial": 45.10000014305115,
+      "p95": 22.700000047683716,
+      "max": 22.700000047683716,
+      "liveRendered": 3,
+      "readingRendered": 5
+    }
+  },
+  "followingCases": {
+    "followingCore": [
+      {
+        "name": "none/comments-off/source/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/live/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/live/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/live/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/live/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 156.1875,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/live/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/live/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/live/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/reading/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/reading/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/reading/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/reading/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 156.1875,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/reading/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/reading/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/reading/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/live/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/live/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/live/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/live/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 168.1875,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/live/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/live/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/live/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/reading/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/reading/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/reading/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/reading/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 168.1875,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/reading/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/reading/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/reading/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/live/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/live/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/live/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/live/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 168.1875,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/live/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/live/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/live/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/reading/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/reading/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/reading/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/reading/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 168.1875,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/reading/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/reading/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/reading/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 101,
+        "comparisonHeight": 92,
+        "followingRowHeight": 39,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/live/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 101,
+        "comparisonHeight": 92,
+        "followingRowHeight": 39,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/live/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 101,
+        "comparisonHeight": 92,
+        "followingRowHeight": 39,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/live/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 101,
+        "comparisonHeight": 92,
+        "followingRowHeight": 39,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/live/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 193,
+        "comparisonHeight": 184,
+        "followingRowHeight": 39,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/live/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 101,
+        "comparisonHeight": 92,
+        "followingRowHeight": 39,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/live/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 101,
+        "comparisonHeight": 92,
+        "followingRowHeight": 39,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/live/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/reading/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/reading/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/reading/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/reading/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 156.1875,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/reading/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/reading/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/reading/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      }
+    ],
+    "followingCombined": [
+      {
+        "name": "none/comments-off/source/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/source/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/live/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/live/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/live/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/live/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 156.1875,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/live/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/live/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/live/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/live/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/reading/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/reading/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/reading/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/reading/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 156.1875,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/reading/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/reading/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-off/reading/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-off/reading/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/source/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/source/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/source/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/source/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/source/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/source/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/source/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/source/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/source/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/source/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/source/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/source/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/source/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/source/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/source/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/source/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/source/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/live/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-on/live/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-on/live/table-tabs",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 103.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "none/comments-on/live/table-before-comments",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 103.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "none/comments-on/live/table-between-proposals",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 176.984375,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "none/comments-on/live/table-one-comment",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 103.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "none/comments-on/live/table-four-comments",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 103.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "none/comments-on/live/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/live/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/live/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/live/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/live/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/live/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/live/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/live/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/live/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/live/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/reading/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-on/reading/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-on/reading/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 103.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-on/reading/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 103.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-on/reading/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 176.984375,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-on/reading/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 103.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-on/reading/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 103.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "none/comments-on/reading/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/reading/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/reading/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/reading/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/reading/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/reading/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/reading/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/reading/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/reading/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "none/comments-on/reading/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/source/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/live/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/live/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/live/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/live/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 168.1875,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/live/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/live/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/live/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/live/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/reading/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/reading/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/reading/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/reading/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 168.1875,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/reading/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/reading/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-off/reading/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-off/reading/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/source/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/source/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/source/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/source/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/source/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/source/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/source/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/source/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/source/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/source/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/source/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/source/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/source/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/source/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/source/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/source/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/source/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/live/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-on/live/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-on/live/table-tabs",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 115.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "exact/comments-on/live/table-before-comments",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 115.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "exact/comments-on/live/table-between-proposals",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 188.984375,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "exact/comments-on/live/table-one-comment",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 115.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "exact/comments-on/live/table-four-comments",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 115.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "exact/comments-on/live/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/live/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/live/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/live/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/live/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/live/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/live/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/live/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/live/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/live/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/reading/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-on/reading/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-on/reading/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 115.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-on/reading/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 115.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-on/reading/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 188.984375,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-on/reading/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 115.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-on/reading/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 115.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "exact/comments-on/reading/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/reading/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/reading/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/reading/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/reading/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/reading/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/reading/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/reading/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/reading/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "exact/comments-on/reading/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/source/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/live/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/live/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/live/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/live/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 168.1875,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/live/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/live/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/live/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/live/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/reading/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/reading/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/reading/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/reading/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 168.1875,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/reading/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/reading/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-off/reading/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-off/reading/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/source/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/source/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/source/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/source/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/source/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/source/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/source/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/source/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/source/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/source/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/source/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/source/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/source/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/source/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/source/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/source/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/source/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/live/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-on/live/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-on/live/table-tabs",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 115.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "padding/comments-on/live/table-before-comments",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 115.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "padding/comments-on/live/table-between-proposals",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 188.984375,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "padding/comments-on/live/table-one-comment",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 115.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "padding/comments-on/live/table-four-comments",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 115.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "padding/comments-on/live/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/live/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/live/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/live/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/live/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/live/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/live/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/live/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/live/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/live/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/reading/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-on/reading/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 94.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-on/reading/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 115.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-on/reading/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 115.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-on/reading/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 188.984375,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-on/reading/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 115.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-on/reading/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 115.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 41.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "padding/comments-on/reading/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/reading/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/reading/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/reading/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/reading/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/reading/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/reading/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/reading/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/reading/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "padding/comments-on/reading/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/source/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 101,
+        "comparisonHeight": 92,
+        "followingRowHeight": 39,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/live/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 101,
+        "comparisonHeight": 92,
+        "followingRowHeight": 39,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/live/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 101,
+        "comparisonHeight": 92,
+        "followingRowHeight": 39,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/live/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 101,
+        "comparisonHeight": 92,
+        "followingRowHeight": 39,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/live/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 193,
+        "comparisonHeight": 184,
+        "followingRowHeight": 39,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/live/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 101,
+        "comparisonHeight": 92,
+        "followingRowHeight": 39,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/live/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 101,
+        "comparisonHeight": 92,
+        "followingRowHeight": 39,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/live/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/live/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/reading/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/reading/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/reading/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/reading/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 156.1875,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/reading/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/reading/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-off/reading/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-off/reading/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/source/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/source/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/source/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/source/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/source/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/source/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/source/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/source/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/source/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/source/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/source/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/source/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/source/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/source/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/source/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/source/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/source/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/live/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 101,
+        "comparisonHeight": 92,
+        "followingRowHeight": 39,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-on/live/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 101,
+        "comparisonHeight": 92,
+        "followingRowHeight": 39,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-on/live/table-tabs",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 121.796875,
+        "comparisonHeight": 92,
+        "followingRowHeight": 39,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "large-type/comments-on/live/table-before-comments",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 121.796875,
+        "comparisonHeight": 92,
+        "followingRowHeight": 39,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "large-type/comments-on/live/table-between-proposals",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 213.796875,
+        "comparisonHeight": 184,
+        "followingRowHeight": 39,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "large-type/comments-on/live/table-one-comment",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 121.796875,
+        "comparisonHeight": 92,
+        "followingRowHeight": 39,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "large-type/comments-on/live/table-four-comments",
+        "failures": [
+          "avatar overlaps following content: Following sentinel remains unchanged.",
+          "avatar overflows its owning row"
+        ],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 121.796875,
+        "comparisonHeight": 92,
+        "followingRowHeight": 39,
+        "avatarOverflow": 19.2890625
+      },
+      {
+        "name": "large-type/comments-on/live/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/live/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/live/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/live/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/live/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/live/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/live/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/live/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/live/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/live/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/reading/table-clean",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-on/reading/table-spaces",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 82.59375,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-on/reading/table-tabs",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 103.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-on/reading/table-before-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 103.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-on/reading/table-between-proposals",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 176.984375,
+        "comparisonHeight": 147.1875,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-on/reading/table-one-comment",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 103.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-on/reading/table-four-comments",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true,
+        "rowHeight": 103.390625,
+        "comparisonHeight": 73.59375,
+        "followingRowHeight": 29.796875,
+        "avatarOverflow": 0
+      },
+      {
+        "name": "large-type/comments-on/reading/paragraph",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/reading/heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/reading/list",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/reading/callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/reading/whole-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/reading/next-heading",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/reading/next-code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/reading/next-table",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/reading/next-callout",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      },
+      {
+        "name": "large-type/comments-on/reading/code",
+        "failures": [],
+        "sourceAndHistoryChecksPass": true
+      }
+    ]
+  },
+  "screenshots": {
+    "comment-spacing-live.png": {
+      "sha256": "0475d3cf7e1773a7ea8f88a6ecbc1af26631b493389bbb4fc9fad9dc80a5a4e8"
+    },
+    "comment-spacing-reading.png": {
+      "sha256": "81f441e7db022e7aafe48635818daf4ecb22c8ab48117c66b4ecc36b5f74ff09"
+    },
+    "comment-spacing-source.png": {
+      "sha256": "f251cd73f45e45b921612dc2d03e145fc746a46726df468bacf5571ae098f82d"
+    },
+    "comment-spacing-avatar-overlap.png": {
+      "sha256": "f01450b50aa30011cab60ec5635a562a28ca6a723ab56b0084f0b8d459048fe0"
+    }
+  },
+  "probes": [
+    {
+      "variant": "observed",
+      "table": {
+        "rowIndex": 2,
+        "pair": {
+          "x": 387,
+          "y": 327.2890625,
+          "w": 379,
+          "h": 73.59375,
+          "bottom": 400.8828125
+        },
+        "cell": {
+          "x": 376.5,
+          "y": 316.7890625,
+          "w": 400,
+          "h": 115.390625,
+          "bottom": 432.1796875
+        },
+        "row": {
+          "x": 376.5,
+          "y": 316.7890625,
+          "w": 800,
+          "h": 115.390625,
+          "bottom": 432.1796875
+        },
+        "followingRow": {
+          "x": 376.5,
+          "y": 432.1796875,
+          "w": 800,
+          "h": 41.796875,
+          "bottom": 473.9765625
+        },
+        "wrapper": {
+          "x": 377,
+          "y": 317.2890625,
+          "w": 399,
+          "h": 114.390625,
+          "bottom": 431.6796875
+        },
+        "padding": [
+          10,
+          10
+        ],
+        "border": [
+          1,
+          1
+        ],
+        "lineHeight": 20.8
+      },
+      "avatarOverflow": 19.2890625
+    },
+    {
+      "variant": "avatars-removed",
+      "table": {
+        "rowIndex": 2,
+        "pair": {
+          "x": 387,
+          "y": 327.2890625,
+          "w": 379,
+          "h": 73.59375,
+          "bottom": 400.8828125
+        },
+        "cell": {
+          "x": 376.5,
+          "y": 316.7890625,
+          "w": 400,
+          "h": 94.59375,
+          "bottom": 411.3828125
+        },
+        "row": {
+          "x": 376.5,
+          "y": 316.7890625,
+          "w": 800,
+          "h": 94.59375,
+          "bottom": 411.3828125
+        },
+        "followingRow": {
+          "x": 376.5,
+          "y": 411.3828125,
+          "w": 800,
+          "h": 41.796875,
+          "bottom": 453.1796875
+        },
+        "wrapper": {
+          "x": 377,
+          "y": 317.2890625,
+          "w": 399,
+          "h": 93.59375,
+          "bottom": 410.8828125
+        },
+        "padding": [
+          10,
+          10
+        ],
+        "border": [
+          1,
+          1
+        ],
+        "lineHeight": 20.8
+      },
+      "avatarOverflow": 0
+    },
+    {
+      "variant": "avatars-in-wrapper",
+      "table": {
+        "rowIndex": 2,
+        "pair": {
+          "x": 387,
+          "y": 327.2890625,
+          "w": 379,
+          "h": 73.59375,
+          "bottom": 400.8828125
+        },
+        "cell": {
+          "x": 376.5,
+          "y": 316.7890625,
+          "w": 400,
+          "h": 115.390625,
+          "bottom": 432.1796875
+        },
+        "row": {
+          "x": 376.5,
+          "y": 316.7890625,
+          "w": 800,
+          "h": 115.390625,
+          "bottom": 432.1796875
+        },
+        "followingRow": {
+          "x": 376.5,
+          "y": 432.1796875,
+          "w": 800,
+          "h": 41.796875,
+          "bottom": 473.9765625
+        },
+        "wrapper": {
+          "x": 377,
+          "y": 317.2890625,
+          "w": 399,
+          "h": 114.390625,
+          "bottom": 431.6796875
+        },
+        "padding": [
+          10,
+          10
+        ],
+        "border": [
+          1,
+          1
+        ],
+        "lineHeight": 20.8
+      },
+      "avatarOverflow": 0
+    },
+    {
+      "variant": "avatars-in-wrapper-no-empty-space",
+      "table": {
+        "rowIndex": 2,
+        "pair": {
+          "x": 387,
+          "y": 327.2890625,
+          "w": 379,
+          "h": 73.59375,
+          "bottom": 400.8828125
+        },
+        "cell": {
+          "x": 376.5,
+          "y": 316.7890625,
+          "w": 400,
+          "h": 115.390625,
+          "bottom": 432.1796875
+        },
+        "row": {
+          "x": 376.5,
+          "y": 316.7890625,
+          "w": 800,
+          "h": 115.390625,
+          "bottom": 432.1796875
+        },
+        "followingRow": {
+          "x": 376.5,
+          "y": 432.1796875,
+          "w": 800,
+          "h": 41.796875,
+          "bottom": 473.9765625
+        },
+        "wrapper": {
+          "x": 377,
+          "y": 317.2890625,
+          "w": 399,
+          "h": 114.390625,
+          "bottom": 431.6796875
+        },
+        "padding": [
+          10,
+          10
+        ],
+        "border": [
+          1,
+          1
+        ],
+        "lineHeight": 20.8
+      },
+      "avatarOverflow": 0
+    },
+    {
+      "variant": "no-avatar-no-empty-space",
+      "table": {
+        "rowIndex": 2,
+        "pair": {
+          "x": 387,
+          "y": 327.2890625,
+          "w": 379,
+          "h": 73.59375,
+          "bottom": 400.8828125
+        },
+        "cell": {
+          "x": 376.5,
+          "y": 316.7890625,
+          "w": 400,
+          "h": 94.59375,
+          "bottom": 411.3828125
+        },
+        "row": {
+          "x": 376.5,
+          "y": 316.7890625,
+          "w": 800,
+          "h": 94.59375,
+          "bottom": 411.3828125
+        },
+        "followingRow": {
+          "x": 376.5,
+          "y": 411.3828125,
+          "w": 800,
+          "h": 41.796875,
+          "bottom": 453.1796875
+        },
+        "wrapper": {
+          "x": 377,
+          "y": 317.2890625,
+          "w": 399,
+          "h": 93.59375,
+          "bottom": 410.8828125
+        },
+        "padding": [
+          10,
+          10
+        ],
+        "border": [
+          1,
+          1
+        ],
+        "lineHeight": 20.8
+      },
+      "avatarOverflow": 0
+    }
+  ],
+  "localInstallation": {
+    "build": "inline-diff:1.3.1:comment-spacing",
+    "checks": {
+      "enabled": true,
+      "correctBuild": true,
+      "installedHashesMatch": true,
+      "notesUnchanged": true,
+      "selectionPreserved": true,
+      "historyPreserved": true,
+      "settingsPreserved": true,
+      "snippetsPreserved": true,
+      "otherPluginsPreserved": true,
+      "viewRestored": true,
+      "scrollRestored": true,
+      "proposalsRemainPending": true,
+      "followingTypographyPreserved": true,
+      "noPluginErrors": true
+    },
+    "sha256": {
+      "main.js": "04c32ac88c9aae7c31127ccfb7facdff6627dbb7f68bddd027054c07f12f5641",
+      "manifest.json": "66be1ba695af3c1bbb4414c0d278524165a492e79c2496fd10cf6f19add3a388",
+      "styles.css": "2df637cc5ed14afaaf853f75fa596d8063becc3263007bb3d4cc8d0c037dfc53"
+    }
+  }
+}

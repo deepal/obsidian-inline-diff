@@ -13,6 +13,10 @@ export function projectRendered(root, side) {
   }
   for (const node of clone.querySelectorAll('.inline-diff-text,.inline-diff-fragment')) node.replaceWith(...node.childNodes);
   clone.querySelectorAll('[data-inline-diff-generated-container]').forEach(node => { if (!node.children.length) node.remove(); });
+  // Restore comment-separator text as well as passive table layout shells.
+  // A rendering-only hidden span must not weaken either source alternative.
+  for (const node of [...clone.querySelectorAll('[data-inline-diff-layout]')].reverse()) node.replaceWith(...node.childNodes);
+  for (const table of clone.querySelectorAll("[data-inline-diff-native-table]")) { table.classList.remove("table-editor"); table.removeAttribute("data-inline-diff-native-table"); }
   clone.normalize();
   return clone;
 }

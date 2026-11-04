@@ -154,6 +154,35 @@ function literalEnd(text: string, at: number): number {
   return at;
 }
 
+/** Horizontal trivia bordering closed Obsidian comments, never literal payload. */
+export function commentSeparators(source: string): Span[] {
+  if (!source.includes("%%")) return [];
+  const start = frontmatterEnd(source), literals = blockLiterals(source, start), comments: Span[] = [];
+  let block = 0;
+  for (let at = start; at < source.length;) {
+    while (block < literals.length && literals[block].to <= at) block++;
+    if (literals[block]?.from <= at && at < literals[block].to) { at = literals[block].to; continue; }
+    const end = literalEnd(source, at);
+    if (end > at && source.startsWith("%%", at) && source.indexOf("%%", at + 2) >= 0) comments.push({ from: at, to: end });
+    at = Math.max(at + 1, end);
+  }
+  const ranges = new Map<number, Span>();
+  for (const comment of comments) {
+    let from = comment.from, to = comment.to;
+    while (from > 0 && /[ \t]/.test(source[from - 1])) from--;
+    if (from < comment.from) ranges.set(from, { from, to: comment.from });
+    while (to < source.length && /[ \t]/.test(source[to])) to++;
+    if (to > comment.to) ranges.set(comment.to, { from: comment.to, to });
+  }
+  return [...ranges.values()].filter(range => {
+    // Keep indentation and possible Markdown hard breaks, including CRLF.
+    const line = source.lastIndexOf("\n", range.from - 1) + 1;
+    const prefix = source.slice(line, range.from);
+    return range.from > line && range.to < source.length && !/[|]/.test(source[range.from - 1]) && source[range.to] !== "|" &&
+      !/^(?:[ \t]*>[ \t]*)*[ \t]*(?:[-+*]|\d+[.)]|#{1,6})?$/.test(prefix) && source[range.to] !== "\n" && source[range.to] !== "\r";
+  }).sort((a, b) => a.from - b.from);
+}
+
 function indentedArmEnd(text: string, at: number): number {
   let end = at;
   while (end < text.length) {

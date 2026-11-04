@@ -1,12 +1,13 @@
 import MarkdownIt from "markdown-it";
-import type { Decision, ReviewUnit } from "./model";
+import { commentSeparators, type Decision, type ReviewUnit, type Span } from "./model";
 
 const markdown = new MarkdownIt({ html: true });
 const owners = new WeakMap<Element, string>();
 const registries = new WeakMap<HTMLElement, Map<string, HTMLElement[]>>();
 const paired = new WeakMap<HTMLElement, { before: HTMLElement; after: HTMLElement; unit: ReviewUnit }>();
 export interface ReviewPlacement { unit: ReviewUnit; context: string[]; before: Range; after: Range; anchor: HTMLElement | null }
-export interface ProjectionCapture { source: string; units: ReviewUnit[]; decision: Decision; prefix: string; blocks: Map<string, Range>; padded: Set<number>; text: string }
+export interface ProjectionCapture { source: string; units: ReviewUnit[]; decision: Decision; prefix: string; blocks: Map<string, Range>; padded: Set<number>; text: string; trivia?: Span[] }
+const triviaKey = (index: number) => `comment-trivia:${index}`;
 const media = ".math,svg,iframe,canvas,.internal-embed,.bases-embed,.bases-view,.mermaid,.block-language-base,.block-language-query,.block-language-mermaid";
 const structural = /^(P|DIV|SECTION|H[1-6]|UL|OL|LI|BLOCKQUOTE|TABLE|THEAD|TBODY|TFOOT|TR|TD|TH|PRE|HR)$/;
 
@@ -64,7 +65,7 @@ function collapsedRow(root: HTMLElement, source: string, position: number): Rang
 }
 
 /** Locate complete source blocks first; only inline ranges need detached markers. */
-export function prepareProjection(root: HTMLElement, source: string, units: ReviewUnit[], decision: Decision, prefix: string): ProjectionCapture {
+export function prepareProjection(root: HTMLElement, source: string, units: ReviewUnit[], decision: Decision, prefix: string, includeTrivia = true): ProjectionCapture {
   const blocks = new Map<string, Range>(), mapped = sourceBlocks(root, source), edits: { from: number; to: number; text: string }[] = [], padded = new Set<number>();
   for (const [index, unit] of units.entries()) {
     let span = decision === "reject" ? unit.before : unit.after;
@@ -107,9 +108,17 @@ export function prepareProjection(root: HTMLElement, source: string, units: Revi
       edits.push({ from: span.from, to: span.to, text: list && atLineStart ? `${list}${start}${end}\n` : `${start}${end}` });
     } else edits.push({ from: span.from, to: span.to, text: start + source.slice(span.from, span.to) + end });
   }
+  const trivia = (includeTrivia ? commentSeparators(source) : []).filter(range => !units.some(unit => {
+    const arm = decision === "reject" ? unit.before : unit.after;
+    return arm.from === arm.to ? range.from <= arm.from && range.to >= arm.to : range.from < arm.to && range.to > arm.from;
+  }));
+  for (const [index, range] of trivia.entries()) {
+    const id = units.length + index;
+    edits.push({ from: range.from, to: range.to, text: `;${prefix}S${id};${source.slice(range.from, range.to)};${prefix}E${id};` });
+  }
   let text = source;
   for (const edit of edits.sort((a,b) => b.from - a.from || b.to - a.to)) text = text.slice(0, edit.from) + edit.text + text.slice(edit.to);
-  return { source, units, decision, prefix, blocks, padded, text };
+  return { source, units, decision, prefix, blocks, padded, text, trivia };
 }
 
 function separator(node: Node): boolean {
@@ -162,10 +171,12 @@ export function captureProjection(original: HTMLElement, marked: HTMLElement, ca
       return { index: match.index - (padded && match[1] === "E" ? 1 : 0), length: match[0].length + (padded ? 1 : 0), kind: match[1], unit: index };
     });
     for (const match of matches) {
-      const unit = capture.units[match.unit]; if (!unit) throw new Error("Unknown proposal boundary.");
+      const unit = capture.units[match.unit], trivia = capture.trivia?.[match.unit - capture.units.length];
+      if (!unit && !trivia) throw new Error("Unknown proposal boundary.");
+      const key = unit?.id ?? triviaKey(match.unit - capture.units.length);
       const range = marked.ownerDocument.createRange(); range.setStart(node, match.index + (match.kind === "S" ? match.length : 0)); range.collapse(true);
-      (match.kind === "S" ? starts : ends).set(unit.id, range);
-      if (unit.before.from === unit.before.to || unit.after.from === unit.after.to) { const container = node.parentElement?.closest<HTMLElement>("p,li"); if (container) emptyContainers.add(container); }
+      (match.kind === "S" ? starts : ends).set(key, range);
+      if (unit && (unit.before.from === unit.before.to || unit.after.from === unit.after.to)) { const container = node.parentElement?.closest<HTMLElement>("p,li"); if (container) emptyContainers.add(container); }
     }
     for (const match of matches.reverse()) node.deleteData(match.index, match.length);
   }
@@ -176,11 +187,12 @@ export function captureProjection(original: HTMLElement, marked: HTMLElement, ca
   original.normalize(); marked.normalize();
   if (semantic(original) !== semantic(marked)) throw new Error("Could not map the proposal to its exact rendered boundaries.");
   const result = new Map(capture.blocks);
-  for (const unit of capture.units) if (!result.has(unit.id)) {
-    const start = starts.get(unit.id), end = ends.get(unit.id);
+  const keys = [...capture.units.map(unit => unit.id), ...(capture.trivia ?? []).map((_range, index) => triviaKey(index))];
+  for (const key of keys) if (!result.has(key)) {
+    const start = starts.get(key), end = ends.get(key);
     if (!start || !end) throw new Error("Missing proposal boundary.");
     const [startNode,startOffset] = transferPoint(original, marked, start.startContainer, start.startOffset), [endNode,endOffset] = transferPoint(original, marked, end.startContainer, end.startOffset);
-    const range = original.ownerDocument.createRange(); range.setStart(startNode,startOffset); range.setEnd(endNode,endOffset); result.set(unit.id,range);
+    const range = original.ownerDocument.createRange(); range.setStart(startNode,startOffset); range.setEnd(endNode,endOffset); result.set(key,range);
   }
   return result;
 }
@@ -219,8 +231,82 @@ function listPosition(range: Range): number | null {
   return Number(parent.getAttribute("start") ?? 1) + (next ? items.indexOf(next) : items.length);
 }
 
+/** Preserve proven native text while removing only its anonymous layout line. */
+function wrapCommentTrivia(root: HTMLElement, ranges: Map<string, Range>): HTMLElement[] {
+  const spans: HTMLElement[] = [];
+  const candidates = [...ranges].filter(([key, range]) => key.startsWith("comment-trivia:") && !range.collapsed && range.startContainer === range.endContainer && range.startContainer.nodeType === 3 && /^[ \t]+$/.test(range.toString()));
+  if (!candidates.length) return spans;
+  // Splitting text exactly at another live Range's endpoint can move that
+  // endpoint to the wrong side of the inserted span. Bookmark verified DOM
+  // offsets, never words, and restore proposal boundaries after all splits.
+  const point = (node: Node, offset: number) => {
+    if (node.nodeType === 3) {
+      const parent = node.parentElement!, prefix = root.ownerDocument.createRange();
+      prefix.selectNodeContents(parent); prefix.setEnd(node, offset);
+      return { parent, text: prefix.toString().length, next: null, previous: null };
+    }
+    return { parent: node as HTMLElement, text: null, next: node.childNodes[offset] ?? null, previous: node.childNodes[offset - 1] ?? null };
+  };
+  const bookmarks = new Map([...ranges].map(([key, range]) => [key, { start: point(range.startContainer, range.startOffset), end: point(range.endContainer, range.endOffset), collapsed: range.collapsed }]));
+  const restorePoint = (saved: ReturnType<typeof point>, right: boolean): [Node, number] => {
+    if (saved.text === null) {
+      const children = [...saved.parent.childNodes];
+      return [saved.parent, saved.next?.parentNode === saved.parent ? children.indexOf(saved.next) : saved.previous?.parentNode === saved.parent ? children.indexOf(saved.previous) + 1 : children.length];
+    }
+    const nodes = textNodes(saved.parent).filter(node => node.length > 0);
+    let offset = saved.text;
+    for (const [index, node] of nodes.entries()) {
+      if (offset < node.length || (offset === node.length && (!right || index === nodes.length - 1))) return [node, offset];
+      offset -= node.length;
+    }
+    return [saved.parent, saved.parent.childNodes.length];
+  };
+  const restore = (key: string, range: Range) => {
+    const saved = bookmarks.get(key)!;
+    const start = restorePoint(saved.start, true), end = saved.collapsed ? start : restorePoint(saved.end, false);
+    range.setStart(...start); range.setEnd(...end);
+  };
+  for (const [key, range] of candidates.reverse()) {
+    restore(key, range);
+    const parent = range.startContainer.parentElement;
+    if (!parent || !root.contains(parent) || range.startContainer !== range.endContainer || parent.closest("pre,code,math,mjx-container,svg,.internal-embed,.footnotes")) continue;
+    const span = root.ownerDocument.createElement("span");
+    range.surroundContents(span); spans.push(span);
+  }
+  for (const [key, range] of ranges) if (!key.startsWith("comment-trivia:")) restore(key, range);
+  return spans;
+}
+
+function settleCommentTrivia(root: HTMLElement, spans: HTMLElement[]): void {
+  const candidates = new Set(spans);
+  const boundary = (span: HTMLElement, direction: "previousSibling" | "nextSibling"): "pair" | "edge" | "text" => {
+    for (let node: Node | null = span[direction]; node; node = node[direction]) {
+      if (node.nodeType === 8 || (node.nodeType === 3 && /^[ \t]*$/.test(node.textContent ?? ""))) continue;
+      if (node.nodeType !== 1) return "text";
+      const element = node as HTMLElement;
+      if (candidates.has(element)) continue;
+      if (paired.has(element)) return "pair";
+      if (structural.test(element.tagName)) return "edge";
+      return "text";
+    }
+    return "edge";
+  };
+  for (const span of spans) {
+    if (root.contains(span) && !span.closest(".inline-diff-side-content")) {
+      const left = boundary(span, "previousSibling"), right = boundary(span, "nextSibling");
+      if (left !== "text" && right !== "text" && (left === "pair" || right === "pair")) {
+        span.className = "inline-diff-comment-trivia";
+        span.dataset.inlineDiffLayout = "comment-trivia"; span.setAttribute("aria-hidden", "true");
+        continue;
+      }
+    }
+    span.replaceWith(...span.childNodes);
+  }
+}
+
 export function assembleComparisons(before: HTMLElement, after: HTMLElement, units: ReviewUnit[], oldRanges: Map<string, Range>, newRanges: Map<string, Range>): { element: HTMLElement; placements: ReviewPlacement[] } {
   const placements: ReviewPlacement[] = units.map(unit => { const old = oldRanges.get(unit.id), next = newRanges.get(unit.id); if (!old || !next) throw new Error("Missing proposal placement."); normalizePlacement(old,next); return { unit, context: unit.hunks[0]?.beforeLocation.path ?? [], before: old, after: next, anchor: null }; });
+  const trivia = [...wrapCommentTrivia(before, oldRanges), ...wrapCommentTrivia(after, newRanges)];
   const fragments = new Map<string, { before: DocumentFragment; after: DocumentFragment; marker: Comment; oldStart: number | null; newStart: number | null; oldItems: number }>();
   for (const placement of [...placements].reverse()) {
     const oldStart = listPosition(placement.before), newStart = listPosition(placement.after), next = placement.after.extractContents(), old = placement.before.extractContents();
@@ -246,7 +332,7 @@ export function assembleComparisons(before: HTMLElement, after: HTMLElement, uni
     const sides: HTMLElement[] = [];
     for (const [side, content, start] of [["before",fragment.before,fragment.oldStart],["after",fragment.after,fragment.newStart]] as const) {
       const panel = before.ownerDocument.createElement(phrasing ? "span" : "div"); panel.className = `inline-diff-side inline-diff-${side}`; panel.dataset.inlineDiffSide = side; panel.setAttribute("role","group"); panel.setAttribute("aria-label",side === "before" ? "Before" : "After");
-      const body = before.ownerDocument.createElement(phrasing ? "span" : "div"); body.className = "inline-diff-side-content markdown-rendered";
+      const body = before.ownerDocument.createElement(phrasing ? "span" : "div"); body.className = "inline-diff-side-content";
       sideShell(body,content,start); panel.append(body); pair.append(panel); sides.push(body);
     }
     if (proxy) { (proxy.querySelector("td") ?? proxy).append(pair); fragment.marker.replaceWith(proxy); }
@@ -254,6 +340,7 @@ export function assembleComparisons(before: HTMLElement, after: HTMLElement, uni
     placement.before.selectNodeContents(sides[0]); placement.after.selectNodeContents(sides[1]);
     placement.anchor = pair; paired.set(pair,{before:sides[0],after:sides[1],unit:placement.unit});
   }
+  settleCommentTrivia(before, trivia);
   return { element: before, placements };
 }
 export function comparisonSides(pair: HTMLElement): { before: HTMLElement; after: HTMLElement; unit: ReviewUnit } | undefined { return paired.get(pair); }

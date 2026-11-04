@@ -4,6 +4,7 @@ import { editorInfoField, editorLivePreviewField, MarkdownView, type TFile } fro
 import { parseNote, reviewGroups, type ParsedNote, type ReviewGroup } from "./model";
 import { Comparison } from "./render";
 import { applyColours } from "./settings";
+import { sourceHighlight } from "./source-highlight";
 import type InlineDiffPlugin from "./main";
 
 export const refreshDiffs = StateEffect.define<null>();
@@ -31,7 +32,7 @@ class ComparisonWidget extends WidgetType {
   eq(other: ComparisonWidget): boolean { return this.note.source === other.note.source && this.group.from === other.group.from && this.group.to === other.group.to && this.settingsVersion === other.settingsVersion && this.file === other.file && this.sourcePath === other.sourcePath && this.readOnly === other.readOnly; }
   toDOM(editor: EditorView): HTMLElement {
     const view = markdownView(editor.state);
-    this.comparison = new Comparison(this.plugin.app, editor.dom.ownerDocument, this.plugin, this.note, this.group, view?.file?.path ?? "", this.readOnly ? null : view, this.plugin.settings);
+    this.comparison = new Comparison(this.plugin.app, editor.dom.ownerDocument, this.plugin, this.note, this.group, view?.file?.path ?? "", this.readOnly ? null : view, this.plugin.settings, { mode: "live", requestMeasure: () => { if (editor.dom.isConnected) editor.requestMeasure(); } });
     this.plugin.addChild(this.comparison);
     return this.comparison.element;
   }
@@ -153,7 +154,7 @@ export function editorExtension(plugin: InlineDiffPlugin) {
     pointerleave(_event, editor) { plugin.scheduleOverlayHide(editor.dom.ownerDocument); },
   } });
   return {
-    extension: [EditorView.editorAttributes.of({ class: "inline-diff-editor" }), field, events],
+    extension: [EditorView.editorAttributes.of({ class: "inline-diff-editor" }), field, sourceHighlight, events],
     parsedNote(state: EditorState): ParsedNote | undefined {
       const canonical = canonicalDocument(state);
       return !canonical || canonical === state.doc ? state.field(field, false)?.note : undefined;

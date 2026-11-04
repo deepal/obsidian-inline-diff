@@ -1,0 +1,1502 @@
+{
+  "date": "2026-11-04T15:02:42.059Z",
+  "status": "known regressions reproduced; no plugin implementation changes",
+  "artifacts": {
+    "identity": "inline-diff:1.3.1:native-styling",
+    "sha256": {
+      "main.js": "60b6c6df56642a65aa25183411379ab0af263c8e0c02d8811e4dfdaf520cc29e",
+      "manifest.json": "66be1ba695af3c1bbb4414c0d278524165a492e79c2496fd10cf6f19add3a388",
+      "styles.css": "9b4bd2fe4d68f7b1cbd309897ac36ba0cf565ef7ea09f84db97565434eda6128"
+    }
+  },
+  "inlineReviewComments": {
+    "version": "4.2.2",
+    "sha256": {
+      "main.js": "3bbce79384c0279aac1f681c23a699e2db8ce556dd77dbe939d7a726e16e00be",
+      "manifest.json": "008d8d3ee8ec02c222e394ac40d44e06014d6e479c7a24cb9e04b1bcd39bbdf8",
+      "styles.css": "676ef90ca712762eb61d19b3b09ac941e229bff7e54bc8d9f59d73b971c96a26"
+    }
+  },
+  "exactSnippetSha256": "1f6350f0f5c093e6761a270cfcc41609c26c1c46461d0cd31b64675c86f4f36d",
+  "summary": {
+    "total": 336,
+    "passed": 320,
+    "failed": 16
+  },
+  "failureCategories": {
+    "avatarOverflows": 8,
+    "avatarOverlapsFollowingText": 8,
+    "extraCellHeight": 12,
+    "followingTypographyFailures": 0,
+    "followingWrappingFailures": 0,
+    "followingBlockHeightFailures": 0,
+    "followingIncludedInComparison": 0,
+    "sourceOrHistoryFailures": 0
+  },
+  "cases": [
+    {
+      "name": "none/comments-off/source/table-clean",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/source/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/source/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/source/table-four-comments",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/source/paragraph",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/source/heading",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/source/list",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/source/callout",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/source/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/source/next-heading",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/source/next-code",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/source/next-table",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/source/next-callout",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/source/code",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/live/table-clean",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/live/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/live/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/live/table-four-comments",
+      "failures": [
+        "unaccounted cell height 20.797px (allowed avatar line 0.000px)"
+      ]
+    },
+    {
+      "name": "none/comments-off/live/paragraph",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/live/heading",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/live/list",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/live/callout",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/live/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/live/next-heading",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/live/next-code",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/live/next-table",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/live/next-callout",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/live/code",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/reading/table-clean",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/reading/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/reading/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/reading/table-four-comments",
+      "failures": [
+        "unaccounted cell height 20.797px (allowed avatar line 0.000px)"
+      ]
+    },
+    {
+      "name": "none/comments-off/reading/paragraph",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/reading/heading",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/reading/list",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/reading/callout",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/reading/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/reading/next-heading",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/reading/next-code",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/reading/next-table",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/reading/next-callout",
+      "failures": []
+    },
+    {
+      "name": "none/comments-off/reading/code",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/source/table-clean",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/source/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/source/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/source/table-four-comments",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/source/paragraph",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/source/heading",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/source/list",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/source/callout",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/source/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/source/next-heading",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/source/next-code",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/source/next-table",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/source/next-callout",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/source/code",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/live/table-clean",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/live/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/live/table-one-comment",
+      "failures": [
+        "avatar overlaps following content: Following sentinel remains unchanged.",
+        "avatar overflows its owning row"
+      ]
+    },
+    {
+      "name": "none/comments-on/live/table-four-comments",
+      "failures": [
+        "avatar overlaps following content: Following sentinel remains unchanged.",
+        "avatar overflows its owning row",
+        "unaccounted cell height 41.594px (allowed avatar line 20.800px)"
+      ]
+    },
+    {
+      "name": "none/comments-on/live/paragraph",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/live/heading",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/live/list",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/live/callout",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/live/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/live/next-heading",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/live/next-code",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/live/next-table",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/live/next-callout",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/live/code",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/reading/table-clean",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/reading/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/reading/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/reading/table-four-comments",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/reading/paragraph",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/reading/heading",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/reading/list",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/reading/callout",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/reading/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/reading/next-heading",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/reading/next-code",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/reading/next-table",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/reading/next-callout",
+      "failures": []
+    },
+    {
+      "name": "none/comments-on/reading/code",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/source/table-clean",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/source/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/source/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/source/table-four-comments",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/source/paragraph",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/source/heading",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/source/list",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/source/callout",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/source/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/source/next-heading",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/source/next-code",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/source/next-table",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/source/next-callout",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/source/code",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/live/table-clean",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/live/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/live/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/live/table-four-comments",
+      "failures": [
+        "unaccounted cell height 20.797px (allowed avatar line 0.000px)"
+      ]
+    },
+    {
+      "name": "exact/comments-off/live/paragraph",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/live/heading",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/live/list",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/live/callout",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/live/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/live/next-heading",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/live/next-code",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/live/next-table",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/live/next-callout",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/live/code",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/reading/table-clean",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/reading/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/reading/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/reading/table-four-comments",
+      "failures": [
+        "unaccounted cell height 20.797px (allowed avatar line 0.000px)"
+      ]
+    },
+    {
+      "name": "exact/comments-off/reading/paragraph",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/reading/heading",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/reading/list",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/reading/callout",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/reading/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/reading/next-heading",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/reading/next-code",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/reading/next-table",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/reading/next-callout",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-off/reading/code",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/source/table-clean",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/source/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/source/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/source/table-four-comments",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/source/paragraph",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/source/heading",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/source/list",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/source/callout",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/source/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/source/next-heading",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/source/next-code",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/source/next-table",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/source/next-callout",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/source/code",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/live/table-clean",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/live/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/live/table-one-comment",
+      "failures": [
+        "avatar overlaps following content: Following sentinel remains unchanged.",
+        "avatar overflows its owning row"
+      ]
+    },
+    {
+      "name": "exact/comments-on/live/table-four-comments",
+      "failures": [
+        "avatar overlaps following content: Following sentinel remains unchanged.",
+        "avatar overflows its owning row",
+        "unaccounted cell height 41.594px (allowed avatar line 20.800px)"
+      ]
+    },
+    {
+      "name": "exact/comments-on/live/paragraph",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/live/heading",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/live/list",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/live/callout",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/live/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/live/next-heading",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/live/next-code",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/live/next-table",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/live/next-callout",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/live/code",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/reading/table-clean",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/reading/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/reading/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/reading/table-four-comments",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/reading/paragraph",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/reading/heading",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/reading/list",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/reading/callout",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/reading/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/reading/next-heading",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/reading/next-code",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/reading/next-table",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/reading/next-callout",
+      "failures": []
+    },
+    {
+      "name": "exact/comments-on/reading/code",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/source/table-clean",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/source/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/source/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/source/table-four-comments",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/source/paragraph",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/source/heading",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/source/list",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/source/callout",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/source/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/source/next-heading",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/source/next-code",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/source/next-table",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/source/next-callout",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/source/code",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/live/table-clean",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/live/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/live/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/live/table-four-comments",
+      "failures": [
+        "unaccounted cell height 20.797px (allowed avatar line 0.000px)"
+      ]
+    },
+    {
+      "name": "padding/comments-off/live/paragraph",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/live/heading",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/live/list",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/live/callout",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/live/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/live/next-heading",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/live/next-code",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/live/next-table",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/live/next-callout",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/live/code",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/reading/table-clean",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/reading/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/reading/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/reading/table-four-comments",
+      "failures": [
+        "unaccounted cell height 20.797px (allowed avatar line 0.000px)"
+      ]
+    },
+    {
+      "name": "padding/comments-off/reading/paragraph",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/reading/heading",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/reading/list",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/reading/callout",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/reading/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/reading/next-heading",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/reading/next-code",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/reading/next-table",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/reading/next-callout",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-off/reading/code",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/source/table-clean",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/source/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/source/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/source/table-four-comments",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/source/paragraph",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/source/heading",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/source/list",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/source/callout",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/source/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/source/next-heading",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/source/next-code",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/source/next-table",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/source/next-callout",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/source/code",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/live/table-clean",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/live/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/live/table-one-comment",
+      "failures": [
+        "avatar overlaps following content: Following sentinel remains unchanged.",
+        "avatar overflows its owning row"
+      ]
+    },
+    {
+      "name": "padding/comments-on/live/table-four-comments",
+      "failures": [
+        "avatar overlaps following content: Following sentinel remains unchanged.",
+        "avatar overflows its owning row",
+        "unaccounted cell height 41.594px (allowed avatar line 20.800px)"
+      ]
+    },
+    {
+      "name": "padding/comments-on/live/paragraph",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/live/heading",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/live/list",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/live/callout",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/live/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/live/next-heading",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/live/next-code",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/live/next-table",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/live/next-callout",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/live/code",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/reading/table-clean",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/reading/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/reading/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/reading/table-four-comments",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/reading/paragraph",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/reading/heading",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/reading/list",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/reading/callout",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/reading/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/reading/next-heading",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/reading/next-code",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/reading/next-table",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/reading/next-callout",
+      "failures": []
+    },
+    {
+      "name": "padding/comments-on/reading/code",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/source/table-clean",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/source/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/source/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/source/table-four-comments",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/source/paragraph",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/source/heading",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/source/list",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/source/callout",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/source/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/source/next-heading",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/source/next-code",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/source/next-table",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/source/next-callout",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/source/code",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/live/table-clean",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/live/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/live/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/live/table-four-comments",
+      "failures": [
+        "unaccounted cell height 30.000px (allowed avatar line 0.000px)"
+      ]
+    },
+    {
+      "name": "large-type/comments-off/live/paragraph",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/live/heading",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/live/list",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/live/callout",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/live/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/live/next-heading",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/live/next-code",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/live/next-table",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/live/next-callout",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/live/code",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/reading/table-clean",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/reading/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/reading/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/reading/table-four-comments",
+      "failures": [
+        "unaccounted cell height 20.797px (allowed avatar line 0.000px)"
+      ]
+    },
+    {
+      "name": "large-type/comments-off/reading/paragraph",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/reading/heading",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/reading/list",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/reading/callout",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/reading/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/reading/next-heading",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/reading/next-code",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/reading/next-table",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/reading/next-callout",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-off/reading/code",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/source/table-clean",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/source/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/source/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/source/table-four-comments",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/source/paragraph",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/source/heading",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/source/list",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/source/callout",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/source/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/source/next-heading",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/source/next-code",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/source/next-table",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/source/next-callout",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/source/code",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/live/table-clean",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/live/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/live/table-one-comment",
+      "failures": [
+        "avatar overlaps following content: Following sentinel remains unchanged.",
+        "avatar overflows its owning row"
+      ]
+    },
+    {
+      "name": "large-type/comments-on/live/table-four-comments",
+      "failures": [
+        "avatar overlaps following content: Following sentinel remains unchanged.",
+        "avatar overflows its owning row",
+        "unaccounted cell height 50.797px (allowed avatar line 30.000px)"
+      ]
+    },
+    {
+      "name": "large-type/comments-on/live/paragraph",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/live/heading",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/live/list",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/live/callout",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/live/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/live/next-heading",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/live/next-code",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/live/next-table",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/live/next-callout",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/live/code",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/reading/table-clean",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/reading/table-spaces",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/reading/table-one-comment",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/reading/table-four-comments",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/reading/paragraph",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/reading/heading",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/reading/list",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/reading/callout",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/reading/whole-callout",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/reading/next-heading",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/reading/next-code",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/reading/next-table",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/reading/next-callout",
+      "failures": []
+    },
+    {
+      "name": "large-type/comments-on/reading/code",
+      "failures": []
+    }
+  ],
+  "probes": [
+    {
+      "variant": "observed",
+      "rowHeight": 136.1875,
+      "comparisonHeight": 73.59375,
+      "gapBelowComparison": 52.09375,
+      "followingRowHeight": 41.796875,
+      "avatarOverflow": [
+        19.289062,
+        19.289062,
+        19.289062,
+        19.289062
+      ]
+    },
+    {
+      "variant": "avatars-removed",
+      "rowHeight": 115.390625,
+      "comparisonHeight": 73.59375,
+      "gapBelowComparison": 31.296875,
+      "followingRowHeight": 41.796875,
+      "avatarOverflow": []
+    },
+    {
+      "variant": "avatars-in-wrapper",
+      "rowHeight": 115.390625,
+      "comparisonHeight": 73.59375,
+      "gapBelowComparison": 31.296875,
+      "followingRowHeight": 41.796875,
+      "avatarOverflow": [
+        -11.507812,
+        -11.507812,
+        -11.507812,
+        -11.507812
+      ]
+    },
+    {
+      "variant": "avatars-in-wrapper-no-empty-space",
+      "rowHeight": 115.390625,
+      "comparisonHeight": 73.59375,
+      "gapBelowComparison": 31.296875,
+      "followingRowHeight": 41.796875,
+      "avatarOverflow": [
+        -11.507812,
+        -11.507812,
+        -11.507812,
+        -11.507812
+      ]
+    },
+    {
+      "variant": "no-avatar-no-empty-space",
+      "rowHeight": 94.59375,
+      "comparisonHeight": 73.59375,
+      "gapBelowComparison": 10.5,
+      "followingRowHeight": 41.796875,
+      "avatarOverflow": []
+    }
+  ],
+  "personalObservation": {
+    "editedRowHeight": 177.78125,
+    "comparisonHeight": 115.1875,
+    "gapBelowComparison": 52.09375,
+    "avatarOverflow": 18.7890625,
+    "preservation": {
+      "sourceUnchanged": true,
+      "diskUnchanged": true,
+      "selectionUnchanged": true,
+      "historyUnchanged": true,
+      "viewUnchanged": true,
+      "scrollRestored": true
+    }
+  },
+  "errors": [],
+  "screenshot": {
+    "file": "docs/images/following-content-avatar-overlap.png",
+    "sha256": "7615028d1a21aba419e81039efa9768a5bdd7b5afdd5ef973acee22db2b85d8f"
+  }
+}

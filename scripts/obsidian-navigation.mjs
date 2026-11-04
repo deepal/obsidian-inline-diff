@@ -81,6 +81,15 @@ try {
       assert.equal(await fs.readFile(path.join(session.vault, "Review.md"), "utf8"), source);
       if (count === 2) await page.screenshot({ path: path.resolve(".qa", `navigation-${mode}.png`) });
     });
+    if(mode==='source')await check('source/outline survives native editor reconfiguration',async()=>{
+      await setFixture(page,fixture(2),mode);await barReady(2,mode);await navigate(1,1,2);
+      const before=await state();
+      const visible=await page.evaluate(()=>{
+        const view=app.workspace.activeLeaf.view;inlineDiffQa.redraw(view);
+        return !!view.contentEl.querySelector('.inline-diff-navigation-target');
+      });
+      assert.equal(visible,true,'the outline remains owned by the editor after redraw');assert.deepEqual(await state(),before);
+    });
     await check(`${mode}/manual scrolling resets the viewport origin`, async () => {
       const source = fixture(6), proposals = parseNote(source).proposals;
       await setFixture(page, source, mode); await barReady(6, mode);
@@ -259,6 +268,9 @@ try {
         app.plugins.plugins["inline-diff"].reviewBars.refresh();
       }, { source: fixture(2), mode });
       try {
+        // Reading returns null until its native section renderer initializes.
+        // Capture a real scroll position before comparing independent panes.
+        await page.waitForFunction(() => Number.isFinite(qaNavigationOther.view.currentMode.getScroll()));
         const otherScroll = await page.evaluate(() => qaNavigationOther.view.currentMode.getScroll());
         await navigate(1, 1, 3, undefined, '[data-qa-navigation="owner"]');
         await navigate(1, 2, 3, "Space", '[data-qa-navigation="owner"]');

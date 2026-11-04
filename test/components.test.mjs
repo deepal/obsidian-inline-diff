@@ -7,12 +7,12 @@ const { Comparison } = await importHostModule("src/render.ts");
 const { ReviewOverlay } = await importHostModule("src/overlay.ts");
 const { normalizeSettings, defaults } = await importHostModule("src/settings.ts");
 
-function setup(source, editable = false) {
+function setup(source, editable = false, presentation = { mode: editable ? "live" : "reading" }) {
   const document = dom(), note = parseNote(source), group = reviewGroups(note)[0];
   const view = editable ? { getMode: () => "source" } : null;
   const calls = [];
   const plugin = { isActive: true, overlay: () => ({ show: (...args) => calls.push(args), focus() {}, scheduleHide() {} }), scheduleOverlayHide() {} };
-  const comparison = new Comparison({}, document.window.document, plugin, note, group, "Review.md", view, defaults);
+  const comparison = new Comparison({}, document.window.document, plugin, note, group, "Review.md", view, defaults, presentation);
   comparison.load(); document.window.document.body.append(comparison.element);
   return { dom: document, comparison, note, group, calls };
 }
@@ -172,4 +172,25 @@ test("settings normalize untrusted data and preserve independent colours", () =>
   assert.deepEqual(normalizeSettings(null), defaults);
   assert.deepEqual(normalizeSettings({ additionText: 4, deletionText: "red;display:none", additionBackground: "url(https://bad)" }), defaults);
   assert.deepEqual(normalizeSettings({ additionText: "#123456", deletionText: "rgba(1,2,3,.5)" }), { ...defaults, additionText: "#123456", deletionText: "rgba(1,2,3,.5)" });
+});
+
+
+test("presentation context stays independent of mutation permission", async()=>{
+ const f=setup('A {~~old~>new~~} sentence.',false,{mode:'live'});await f.comparison.ready;
+ assert.equal(f.comparison.element.querySelectorAll('.inline-diff-side-content.markdown-rendered').length,0);
+ assert.equal(f.comparison.element.querySelectorAll('[tabindex],button').length,0);
+ f.comparison.unload();f.dom.window.close();
+});
+test("Reading comparisons inherit the existing rendered boundary", async()=>{
+ const f=setup('A {~~old~>new~~} sentence.',false,{mode:'reading'});await f.comparison.ready;
+ assert.equal(f.comparison.element.querySelectorAll('.markdown-rendered').length,0);
+ f.comparison.unload();f.dom.window.close();
+});
+test("comparison resize requests coalesce and cancel on disposal",async()=>{
+ let callback,disconnected=false,calls=0;const f=setup('A {~~old~>new~~} sentence.',false,{mode:'live',requestMeasure:()=>calls++});
+ f.dom.window.ResizeObserver=class{constructor(cb){callback=cb}observe(){}disconnect(){disconnected=true}};
+ await f.comparison.ready;callback([{contentRect:{width:300,height:100}}]);callback([{contentRect:{width:300,height:120}}]);
+ await new Promise(r=>setTimeout(r,40));assert.equal(calls,1);
+ callback([{contentRect:{width:300,height:120}}]);await new Promise(r=>setTimeout(r,25));assert.equal(calls,1);
+ callback([{contentRect:{width:400,height:120}}]);f.comparison.unload();await new Promise(r=>setTimeout(r,25));assert.equal(calls,1);assert.equal(disconnected,true);f.dom.window.close();
 });

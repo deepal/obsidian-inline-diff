@@ -4,19 +4,21 @@
   --inline-diff-deletion-text: var(--text-error, #cb2431);
   --inline-diff-deletion-background: rgba(248, 81, 73, .14);
 }
-.inline-diff-review { position: relative; border: 0; margin: 0; overflow: visible; font-size: var(--font-text-size); }
-.inline-diff-review .inline-diff-proposal { display: block; position: relative; width: 100%; box-sizing: border-box; margin: 0; white-space: normal; }
-.inline-diff-review .inline-diff-side { display: block; box-sizing: border-box; width: 100%; padding: 8px 12px; border: 0; border-left: 3px solid transparent; }
+.inline-diff-review { position: relative; border: 0; margin: 0; overflow: visible; }
+.inline-diff-review .inline-diff-proposal { display: block; position: relative; width: 100%; box-sizing: border-box; margin: 0; }
+:where(.inline-diff-review) .inline-diff-side { display: block; box-sizing: border-box; width: 100%; padding: 8px 12px; border: 0; border-left: 3px solid transparent; }
 .inline-diff-review .inline-diff-before { background-color: color-mix(in srgb, var(--inline-diff-deletion-background) 35%, transparent); border-left-color: var(--inline-diff-deletion-text); }
 .inline-diff-review .inline-diff-after { background-color: color-mix(in srgb, var(--inline-diff-addition-background) 35%, transparent); border-left-color: var(--inline-diff-addition-text); }
-.inline-diff-side-content { display: block; overflow-x: auto; white-space: normal; }
+.inline-diff-side-content { display: block; overflow-x: auto; }
+.inline-diff-comment-trivia { display: none; }
 .inline-diff-side-content > :first-child { margin-top: 0; }
 .inline-diff-side-content > :last-child { margin-bottom: 0; }
 .inline-diff-review .inline-diff-list-proxy { list-style: none; }
 .inline-diff-hunk-anchor:focus-visible { outline: 2px solid var(--interactive-accent); }
 .inline-diff-content > :first-child { margin-top: 0; }
 .inline-diff-content > :last-child { margin-bottom: 0; }
-.inline-diff-content { overflow-x: auto; white-space: normal; }
+.inline-diff-content { overflow-x: auto; }
+:where(.inline-diff-content.markdown-rendered) { white-space: normal; }
 .inline-diff-render-context { display: none !important; }
 .inline-diff-review .inline-diff-addition, .inline-diff-source-mark.inline-diff-addition { color: var(--inline-diff-addition-text); background: var(--inline-diff-addition-background); }
 .inline-diff-review .inline-diff-deletion, .inline-diff-source-mark.inline-diff-deletion { color: var(--inline-diff-deletion-text); background: var(--inline-diff-deletion-background); }

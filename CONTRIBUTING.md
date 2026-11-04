@@ -27,13 +27,16 @@ See [implementation notes](docs/architecture.md) for rendering ownership, safe r
 - Native callout comparisons verify nested, folded, multi-paragraph, code, and math content in both rendered views and all four themes. Descendant positions, dimensions, whitespace, and line heights must match the native callout at the same width within 0.5 CSS pixels.
 - Review-bar checks cover proposal counts, native typing and external edits, exact bulk actions and undo/redo, stale snapshots, busy controls, active cells, pane ownership, and mutation-free Reading view. Separate layout checks cover fixed positioning above titles/properties, hidden titles, narrow panes, scrolling, same-file locks and divergent buffers, and popout migration. Theme checks preserve native status-bar height and verify hover does not move note content.
 - The navigation suite covers 0, 1, 2, and many proposals in Source, Live Preview, and Reading, including disabled single-change arrows, pointer/keyboard navigation, viewport origins, offscreen and shared comparisons, wraparound, external count transitions, and cursor/selection/history preservation. Run it alone with `npm run test:obsidian:navigation`; `QA_NAV_MODE` selects one view for diagnosis. The full `npm run test:obsidian` includes this suite.
+- The override suite compares actual native notes against pending comparisons without copying typography into the reference. It covers native table layout, inherited typography, nine CSS profiles, runtime snippet changes, read-only Live Preview, four themes, palettes, zoom, splits and popouts. `OBSIDIAN_QA_OVERRIDE_FILE` is a read-only input copied unchanged into the disposable vault; keep personal CSS out of public artifacts. `QA_OVERRIDE_THEME` and `QA_OVERRIDE_PROFILE` are diagnostic filters only.
+- The mandatory following-content suite runs with Inline Review Comments disabled (`npm run test:obsidian:following:core`). It checks hidden-comment separators before/after/between comparisons and the next row, paragraph, heading, list, code, table and callout against independent native notes in all three views and four override profiles. The separate `test:obsidian:following` diagnostic requires `OBSIDIAN_QA_IRC_DIR`; its combined mode retains the known avatar-overflow failures and exits nonzero. Never remove those assertions to make Inline Diff's core validation pass.
 
 The PDF comparison checks the stable embed destination and options rather than transient PDF.js DOM. Native table-cell tests compare semantic cell content with an independent native edit because Obsidian owns cell-padding formatting. These exceptions do not weaken exact-file comparisons for ordinary review actions.
 
 ## Disposable app runner
 
 ```sh
-OBSIDIAN_QA_THEME_ROOT="/path/to/installed/themes" npm run test:obsidian
+OBSIDIAN_QA_THEME_ROOT="/path/to/installed/themes" \
+OBSIDIAN_QA_OVERRIDE_FILE="/path/to/current/snippet.css" npm run test:obsidian
 ```
 
 The runner creates synthetic notes, media, a PDF, a canvas, and Bases fixtures in a temporary vault and separate application profile. It checks the vault path and a random ownership sentinel before interacting. The debugger is loopback-only. It never changes the personal vault or its profile.

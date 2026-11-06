@@ -2,7 +2,7 @@
 
 Review an agent's proposed changes to an Obsidian note, then accept or reject each edit.
 
-![Inline Diff showing pending changes, individual inline changes, navigation, and accept or reject controls](docs/images/granular-live.png)
+![Inline Diff showing pending changes, rendered comparisons, and accept or reject controls](docs/images/readme-pending-changes.png)
 
 Requires desktop Obsidian **1.14.5 or newer**. The original baseline was 1.14.5; granular rendering is verified on 1.15.0 on macOS. Mobile support is not included.
 

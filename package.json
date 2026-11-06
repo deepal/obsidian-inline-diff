@@ -1,6 +1,6 @@
 {
   "name": "obsidian-inline-diff",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "private": true,
   "type": "module",
   "description": "Review proposed Markdown changes in place with rendered comparisons.",

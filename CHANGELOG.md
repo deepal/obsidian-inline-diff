@@ -1,3 +1,9 @@
+## [1.3.3](https://github.com/deepal/obsidian-inline-diff/compare/1.3.2...1.3.3) (2026-11-06)
+
+### Bug Fixes
+
+* restore the previous readme screenshot ([e877359](https://github.com/deepal/obsidian-inline-diff/commit/e877359bfeb8b44a7fcc22754cd0c4cba8b0f4d0))
+
 ## [1.3.2](https://github.com/deepal/obsidian-inline-diff/compare/1.3.1...1.3.2) (2026-11-04)
 
 ### Bug Fixes

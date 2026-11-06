@@ -1,3 +1,9 @@
+## [1.4.0](https://github.com/deepal/obsidian-inline-diff/compare/1.3.3...1.4.0) (2026-11-06)
+
+### Features
+
+* show pending changes in the file explorer ([26526ce](https://github.com/deepal/obsidian-inline-diff/commit/26526cee7792083a5a16b064831617eaaa4c551f))
+
 ## [1.3.3](https://github.com/deepal/obsidian-inline-diff/compare/1.3.2...1.3.3) (2026-11-06)
 
 ### Bug Fixes

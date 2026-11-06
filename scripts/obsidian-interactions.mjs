@@ -1240,7 +1240,7 @@ try {
       }
     });
     await check("configured colours apply in all views", async () => {
-      await page.evaluate(async () => { const p = app.plugins.plugins["inline-diff"]; p.settings = { additionText: "#abcdef", additionBackground: "#123456", deletionText: "#fedcba", deletionBackground: "#654321" }; await p.saveSettings(); });
+      await page.evaluate(async () => { const p = app.plugins.plugins["inline-diff"]; Object.assign(p.settings, { additionText: "#abcdef", additionBackground: "#123456", deletionText: "#fedcba", deletionBackground: "#654321" }); await p.saveSettings(); });
       for (const palette of ["light", "dark"]) {
         await page.evaluate(palette => app.changeTheme(palette === "light" ? "moonstone" : "obsidian"), palette);
         for (const theme of measurements.themes ? ["", "Primary", "Minimal", "Blue Topaz"] : [""]) {
@@ -1255,7 +1255,7 @@ try {
         }
       }
       await page.evaluate(async () => { await app.customCss.setTheme(""); app.changeTheme("moonstone"); });
-      await page.evaluate(async () => { const p = app.plugins.plugins["inline-diff"]; p.settings = { additionText: "", additionBackground: "", deletionText: "", deletionBackground: "" }; await p.saveSettings(); });
+      await page.evaluate(async () => { const p = app.plugins.plugins["inline-diff"]; Object.assign(p.settings, { additionText: "", additionBackground: "", deletionText: "", deletionBackground: "" }); await p.saveSettings(); });
     });
     await check("native settings controls save and reset all four colours", async () => {
       await page.evaluate(() => { app.setting.open(); app.setting.openTabById("inline-diff"); });
@@ -1272,9 +1272,15 @@ try {
       await inputs.first().waitFor(); assert.equal(await inputs.count(), 4);
       const colours = ["#135790", "#246801", "#abcdef", "#fedcba"];
       for (const [index, colour] of colours.entries()) await inputs.nth(index).fill(colour);
-      await page.waitForFunction(colours => JSON.stringify(Object.values(app.plugins.plugins["inline-diff"].settings)) === JSON.stringify(colours), colours);
+      await page.waitForFunction(colours => {
+        const { additionText, additionBackground, deletionText, deletionBackground } = app.plugins.plugins["inline-diff"].settings;
+        return [additionText, additionBackground, deletionText, deletionBackground].every((value, index) => value === colours[index]);
+      }, colours);
       await settingsPage.getByRole("button", { name: "Reset", exact: true }).click();
-      await page.waitForFunction(() => Object.values(app.plugins.plugins["inline-diff"].settings).every(value => value === ""));
+      await page.waitForFunction(() => {
+        const { additionText, additionBackground, deletionText, deletionBackground } = app.plugins.plugins["inline-diff"].settings;
+        return [additionText, additionBackground, deletionText, deletionBackground].every(value => value === "");
+      });
       await page.evaluate(() => app.setting.close());
     });
     await check("repeated redraw and plugin reload leave no duplicate layers", async () => {

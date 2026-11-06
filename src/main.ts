@@ -11,6 +11,7 @@ import { applyColours, defaults, DiffSettingTab, normalizeSettings, type DiffSet
 import { FormatPreserver } from "./formats";
 import { ReviewBarCoordinator, type BulkReviewTarget, type ReviewSnapshot } from "./status";
 import { ChangeNavigator } from "./navigation";
+import { ExplorerBadges } from "./explorer";
 
 interface CellOwner { tableCell: unknown; destroyTableCell: () => void }
 function isCellOwner(value: unknown): value is CellOwner {
@@ -20,12 +21,13 @@ function isCellOwner(value: unknown): value is CellOwner {
 export default class InlineDiffPlugin extends Plugin {
   settings: DiffSettings = { ...defaults };
   settingsVersion = 0;
-  readonly buildIdentity = `inline-diff:${this.manifest.version}:comment-spacing`;
+  readonly buildIdentity = `inline-diff:${this.manifest.version}:explorer-badges`;
   private overlays = new Map<Document, ReviewOverlay>();
   private reading!: ReadingCoordinator;
   private formats!: FormatPreserver;
   private editorModel!: ReturnType<typeof editorExtension>;
   private reviewBars!: ReviewBarCoordinator;
+  private explorerBadges?: ExplorerBadges;
   private readingNotes = new WeakMap<MarkdownView, { file: TFile; note: ParsedNote }>();
   private stopped = false;
   private resolving = new Set<MarkdownView>();
@@ -101,6 +103,7 @@ export default class InlineDiffPlugin extends Plugin {
     this.registerEvent(this.app.vault.on("rename", () => this.scheduleReviewBars()));
     this.registerEvent(this.app.vault.on("delete", () => this.scheduleReviewBars()));
     this.app.workspace.onLayoutReady(() => { if (!this.stopped) this.reviewBars.refresh(); });
+    this.syncExplorerBadges();
   }
 
   overlay(doc: Document): ReviewOverlay {
@@ -110,7 +113,35 @@ export default class InlineDiffPlugin extends Plugin {
   }
 
   scheduleOverlayHide(doc: Document): void { this.overlays.get(doc)?.scheduleHide(); }
-  scheduleReviewBars(): void { this.reviewBars?.schedule(); }
+  scheduleReviewBars(): void {
+    this.reviewBars?.schedule();
+    this.explorerBadges?.schedule();
+  }
+
+  async setExplorerBadges(enabled: boolean): Promise<void> {
+    this.settings.showExplorerBadges = enabled;
+    this.syncExplorerBadges();
+    await this.saveData(this.settings);
+  }
+
+  private syncExplorerBadges(): void {
+    if (this.settings.showExplorerBadges && !this.explorerBadges) {
+      this.explorerBadges = this.addChild(new ExplorerBadges(this.app, files => {
+        const counts = new Map<TFile, number | null>();
+        for (const view of this.markdownViews()) {
+          if (!view.file || !files.has(view.file) || view.getMode() !== "source" || !this.editorView(view.editor)?.dom.isConnected) continue;
+          const snapshot = this.readReviewSnapshot(view);
+          if (!snapshot?.file) continue;
+          const previous = counts.get(snapshot.file);
+          counts.set(snapshot.file, previous === undefined || previous === snapshot.pending ? snapshot.pending : null);
+        }
+        return counts;
+      }));
+    } else if (!this.settings.showExplorerBadges && this.explorerBadges) {
+      this.removeChild(this.explorerBadges);
+      this.explorerBadges = undefined;
+    }
+  }
 
   private markdownViews(): MarkdownView[] {
     return this.app.workspace.getLeavesOfType("markdown").map(leaf => leaf.view).filter((view): view is MarkdownView => view instanceof MarkdownView);

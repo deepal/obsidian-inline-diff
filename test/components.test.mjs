@@ -170,6 +170,9 @@ test("a local toolbar restores keyboard focus to its hunk", () => {
 
 test("settings normalize untrusted data and preserve independent colours", () => {
   assert.deepEqual(normalizeSettings(null), defaults);
+  assert.equal(normalizeSettings({ additionText: "#123456" }).showExplorerBadges, true);
+  assert.equal(normalizeSettings({ showExplorerBadges: false }).showExplorerBadges, false);
+  assert.equal(normalizeSettings({ showExplorerBadges: "false" }).showExplorerBadges, true);
   assert.deepEqual(normalizeSettings({ additionText: 4, deletionText: "red;display:none", additionBackground: "url(https://bad)" }), defaults);
   assert.deepEqual(normalizeSettings({ additionText: "#123456", deletionText: "rgba(1,2,3,.5)" }), { ...defaults, additionText: "#123456", deletionText: "rgba(1,2,3,.5)" });
 });

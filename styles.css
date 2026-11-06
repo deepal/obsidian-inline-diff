@@ -64,3 +64,15 @@
 .inline-diff-evidence > code { margin-inline: 3px; }
 /* Give inert frames a real review hit area without enabling their contents. */
 .inline-diff-fragment:has(> iframe) { display: inline-block; max-width: 100%; }
+.inline-diff-explorer-badge {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  margin-inline: var(--size-2-2);
+  color: var(--text-accent);
+}
+
+.inline-diff-explorer-badge > svg {
+  width: var(--icon-xs);
+  height: var(--icon-xs);
+}
